@@ -783,8 +783,8 @@ static struct subdrv_ops ops = {
 
 static struct subdrv_pw_seq_entry pw_seq[] = {
 	{HW_ID_RST, {0}, 1000},
-	{HW_ID_DOVDD, {1800000, 1800000}, 0},
-	{HW_ID_AVDD, {2800000, 2800000}, 0},
+	{HW_ID_DOVDD, {1800000, 1800000}, 5000},
+	{HW_ID_AVDD, {2800000, 2800000}, 9000},
 	{HW_ID_DVDD, {1200000, 1200000}, 5000},
 	{HW_ID_MCLK, {24}, 0},
 	{HW_ID_RST, {1}, 1000},

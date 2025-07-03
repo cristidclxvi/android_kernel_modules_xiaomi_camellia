@@ -880,7 +880,7 @@ static kal_uint16 hm6_burst_write_cmos_sensor(
 			IDX += 2;
 		}
 
-		if ((tosend >= I2C_Burst_BUFFER_LEN) || IDX == len || addr != addr_last) {
+		if ((tosend >= I2C_BUFFER_LEN) || IDX == len || addr != addr_last) {
 			iBurstWriteReg_multi(puSendCmd, tosend,
 				imgsensor.i2c_write_id, tosend, imgsensor_info.i2c_speed);
 			tosend = 0;
@@ -1206,7 +1206,6 @@ static kal_uint32 open(void)
 	}else {
 		sensor_init();
 	}
-
 	spin_lock(&imgsensor_drv_lock);
 	imgsensor.autoflicker_en = KAL_FALSE;
 	imgsensor.sensor_mode = IMGSENSOR_MODE_INIT;

@@ -1195,6 +1195,10 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb, void *handle,
 	if (bl_level > 4095)
 		bl_level = 4095;
 
+	if ((bl_level > 16) && (bl_level < MAX_NORMAL_BRIGHTNESS)) {
+		bl_level = map_exp[level];
+	}
+
 	bl_tb0[1] = bl_level >> 4;
 	bl_tb0[2] = bl_level & 0xf;
 

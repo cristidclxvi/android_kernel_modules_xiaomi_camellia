@@ -65,7 +65,7 @@ endif
 thermal_monitor-y += common/thermal_zones/mtk_ts_pa.o
 thermal_monitor-y += common/thermal_zones/mtk_ts_pa_thput.o
 thermal_monitor-y += common/thermal_zones/mtk_ts_charger.o
-
+thermal_monitor-y += common/thermal_zones/oplus_ts_tempntc.o
 
 ifeq ($(strip $(CONFIG_MTK_PLAT_POWER_6853)),)
 thermal_monitor-y += common/thermal_zones/mtk_ts_wmt.o
@@ -108,7 +108,6 @@ include $(DEVICE_MODULES_PATH)/drivers/misc/mediatek/thermal/src/Makefile
 ccflags-y  += -I$(DEVICE_MODULES_PATH)/drivers/misc/mediatek/thermal/inc
 thermal_monitor-y += common/thermal_zones/mtk_ts_dctm.o
 thermal_monitor-y += common/thermal_zones/mtk_ts_imgsensor.o
-thermal_monitor-y += common/thermal_zones/oplus_ts_tempntc.o
 thermal_monitor-y += common/thermal_zones/mtk_ts_AP.o
 thermal_monitor-y += common/thermal_zones/mtk_ts_PA.o
 thermal_monitor-y += common/thermal_zones/mtk_ts_CHARGER_6869.o

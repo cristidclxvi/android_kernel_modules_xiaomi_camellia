@@ -520,7 +520,7 @@ aliases {
 		bootargs = "console=tty0 root=/dev/ram \
 		vmalloc=400M swiotlb=noforce \
 		8250.nr_uarts=2 restrict_cma_redirect \
-		log_buf_len=4m \
+		log_buf_len=2m \
 		cgroup.memory=nosocket,nokmem \
 		firmware_class.path=/vendor/firmware \
 		loop.max_part=7 \
@@ -1219,7 +1219,7 @@ aliases {
 		scp_mpuRegionId = <28>;
 		scp_feature_tbl = <0 5>,   /* vow */
 				<1 356>,  /* dsp */
-				<2 62>,   /* sensor */
+				<2 250>,   /* sensor */
 				<3 47>,   /* mp3 */
 				<4 26>,   /* flp */
 				<5 0>,    /* rtos */
@@ -2647,7 +2647,16 @@ aliases {
 	};
 
 	goodix_fp: fingerprint {
-		compatible = "mediatek,goodix-fp";
+		compatible = "goodix,goodix_fp";
+	};
+
+	oplus_fp_common:oplus_fp_common { //Slave driver and CS ID
+		compatible = "oplus,fp_common"; //Manufacture, and Model
+	};
+
+	jiiov_fp: jiiov_fp {
+		compatible = "jiiov,fingerprint";
+		status = "okay";
 	};
 
 //#ifdef OPLUS_FEATURE_BOOT_SECURITY
@@ -3146,6 +3155,7 @@ aliases {
 		clock-div = <1>;
 		mediatek,control-irq-sel;
 		mediatek,control-rs-stop;
+		mediatek,dynamic-speed;
 	};
 
 	i2c3: i2c@1100f000 {
@@ -3172,6 +3182,7 @@ aliases {
 		clock-div = <1>;
 		mediatek,control-irq-sel;
 		mediatek,control-rs-stop;
+		mediatek,dynamic-speed;
 	};
 
 	i2c5: i2c@11016000 {
@@ -3689,7 +3700,7 @@ audio_extend: audio_extend {
 		/*INFRA MISC, conn_bt_cvsd_mask*/
 		/*cvsd_mcu_read, write, packet_indicator*/
 		mediatek,offset =<0xf00 0x800 0x140 0x144 0x148>;
-		disable_write_silence = <0>;
+		disable_write_silence = <1>;
 	};
 
 	mipi_rx_ana_csi0a: mipi_rx_ana_csi0a@11c10000 {

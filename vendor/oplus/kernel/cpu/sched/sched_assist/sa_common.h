@@ -643,6 +643,7 @@ ssize_t oplus_show_cpus(const struct cpumask *mask, char *buf);
 void adjust_rt_lowest_mask(struct task_struct *p, struct cpumask *local_cpu_mask, int ret, bool force_adjust);
 bool sa_skip_rt_sync(struct rq *rq, struct task_struct *p, bool *sync);
 bool sa_rt_skip_ux_cpu(int cpu);
+int is_vip_mvp(struct task_struct *p);
 
 /* s64 account_ux_runtime(struct rq *rq, struct task_struct *curr); */
 void opt_ss_lock_contention(struct task_struct *p, unsigned long old_im, int new_im);

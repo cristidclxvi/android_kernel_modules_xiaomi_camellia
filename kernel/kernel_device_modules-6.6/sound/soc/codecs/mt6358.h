@@ -3795,6 +3795,7 @@ struct mt6358_priv {
 
 	int pull_down_stay_enable;
 	bool init_dis_micbias;
+	bool overshoot_dis_micbias;
 };
 
 /* dl pga gain */

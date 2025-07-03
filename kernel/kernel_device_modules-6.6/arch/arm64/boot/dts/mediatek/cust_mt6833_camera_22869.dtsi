@@ -455,7 +455,7 @@
 	cam1_vcamd-supply = <&mt6359p_vcn13_reg>;
 	//cam2_vcamd1-supply = <&mt6359p_vcn13_reg>;
 
-	vcammainaf-supply = <&mt_pmic_vtp_ldo_reg>;
+	cam0_vcamaf-supply = <&mt_pmic_vtp_ldo_reg>;
 
 	cam0_enable_sensor = "s5k3l6_mipi_raw_fanli s5kjn103_mipi_raw_fanli";
 	cam1_enable_sensor = "ov08d10_mipi_raw_fanli";

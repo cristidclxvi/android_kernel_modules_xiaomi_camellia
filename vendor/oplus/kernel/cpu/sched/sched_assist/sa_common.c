@@ -560,7 +560,7 @@ noinline int tracing_mark_write(const char *buf)
 	return 0;
 }
 
-static int is_vip_mvp(struct task_struct *p)
+int is_vip_mvp(struct task_struct *p)
 {
 	struct oplus_task_struct *ots = get_oplus_task_struct(p);
 	if (IS_ERR_OR_NULL(ots))
@@ -1770,7 +1770,6 @@ static inline void do_boost_kill_task(struct task_struct *p)
 		cpumask_copy(&p->cpus_mask, boost_mask);
 		p->nr_cpus_allowed = cpumask_weight(boost_mask);
 	}
-
 }
 
 void android_vh_exit_signal_handler(void *unused, struct task_struct *p)

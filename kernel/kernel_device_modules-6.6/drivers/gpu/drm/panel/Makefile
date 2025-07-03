@@ -25,6 +25,12 @@ ccflags-y += -DOPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 ccflags-y += -DOPLUS_FEATURE_DISPLAY_ADFR
 ccflags-y += -DOPLUS_FEATURE_DISPLAY_HPWM
 ccflags-y += -DOPLUS_FEATURE_DISPLAY_APOLLO
+
+$(info build oplus_panel.ko, CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG=$(CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG))
+ifneq ($(filter $(CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG), y m),)
+ccflags-y += -DOPLUS_DISPLAY_PLATFORM_COMMON_BUG
+endif # filter CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG end
+
 #build oplus_panel.ko
 obj-$(CONFIG_DRM_PANEL_AC178_P_3_A0004_DSI_CMD) += ../oplus/oplus_panel/panel_ac178_p_3_a0004_dsi_cmd.o
 obj-$(CONFIG_DRM_OPLUS_DISPLAY_DSI_PRIMARY) += ../oplus/oplus_panel/oplus_display_dsi_primary.o

@@ -268,6 +268,7 @@ static int jd5516w_power_off(struct jd5516w_device *jd5516w)
 static int jd5516w_power_on(struct jd5516w_device *jd5516w)
 {
 	int ret, min, max;
+	msleep(40);
 
   	LOG_INF("%s\n", __func__);
 

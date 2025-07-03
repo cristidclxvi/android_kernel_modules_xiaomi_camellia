@@ -1220,6 +1220,7 @@ def get_overlay_modules_list():
 
     if "mt6877_overlay.config" in DEFCONFIG_OVERLAYS:
         mgk_64_kleaf_modules.append("//vendor/mediatek/kernel_modules/connectivity/wlan/core/gen4m/build/connac2x/6877:wlan_drv_gen4m_6877")
+        mgk_64_kleaf_modules.append("//vendor/oplus/kernel/oplus_performance_5.10/sdcardfs:sdcardfs")
         mgk_64_device_modules.append("drivers/soc/oplus/boot/oplus_custom/oplus_custom.ko")
         mgk_64_kleaf_modules.remove("//vendor/mediatek/kernel_modules/gpu:gpu")
         mgk_64_kleaf_modules.append("//vendor/mediatek/kernel_modules/gpu:gpu_mt6877")
@@ -1234,7 +1235,7 @@ def get_overlay_modules_list():
         mgk_64_device_modules.remove("drivers/memory/mediatek/emi-mpu-test-v2.ko")
         mgk_64_device_modules.remove("drivers/memory/mediatek/emi-slb.ko")
         mgk_64_device_modules.remove("drivers/power/oplus/v2/oplus_chg_v2.ko")
-        mgk_64_device_modules.remove("drivers/power/oplus/test-kit/test-kit.ko")
+        #mgk_64_device_modules.remove("drivers/power/oplus/test-kit/test-kit.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6375-battery.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6357_battery.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6379-battery.ko")
@@ -1829,7 +1830,11 @@ def get_overlay_modules_list():
 
 
     if "mt6768_overlay.config" in DEFCONFIG_OVERLAYS:
+        mgk_64_device_modules.append("drivers/input/fingerprint/oplus_fp_common/oplus_fpcommon.ko")
+        mgk_64_device_modules.append("drivers/input/fingerprint/goodix/goodix_fp.ko")
+        mgk_64_device_modules.append("drivers/input/fingerprint/jiiov/jiiov_fp.ko")
         mgk_64_kleaf_modules.append("//vendor/mediatek/kernel_modules/connectivity/wlan/core/gen4m/build/connac1x/6768:wlan_drv_gen4m_6768")
+        mgk_64_kleaf_modules.append("//vendor/oplus/kernel/oplus_performance_5.10/sdcardfs:sdcardfs")
         mgk_64_device_modules.append("drivers/soc/oplus/boot/oplus_custom/oplus_custom.ko")
         mgk_64_platform_device_modules.pop("drivers/gpu/drm/oplus/oplus_panel/oplus_display_dsi_primary.ko")
         mgk_64_platform_device_modules.pop("drivers/gpu/drm/oplus/oplus_panel/panel_ac178_p_3_a0004_dsi_cmd.ko")
@@ -1899,7 +1904,7 @@ def get_overlay_modules_list():
         mgk_64_device_modules.remove("drivers/memory/mediatek/emi-mpu-test-v2.ko")
         mgk_64_device_modules.remove("drivers/memory/mediatek/emi-slb.ko")
         mgk_64_device_modules.remove("drivers/power/oplus/v2/oplus_chg_v2.ko")
-        mgk_64_device_modules.remove("drivers/power/oplus/test-kit/test-kit.ko")
+        #mgk_64_device_modules.remove("drivers/power/oplus/test-kit/test-kit.ko")
         mgk_64_device_modules.remove("drivers/power/oplus/v2/ufcs/ufcs_class.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6375-battery.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6357_battery.ko")
@@ -3409,12 +3414,13 @@ def get_overlay_modules_list():
 
     if "mt6833_overlay.config" in DEFCONFIG_OVERLAYS:
         mgk_64_kleaf_modules.append("//vendor/mediatek/kernel_modules/connectivity/wlan/core/gen4m/build/connac1x/6833:wlan_drv_gen4m_6833")
+        mgk_64_kleaf_modules.append("//vendor/oplus/kernel/oplus_performance_5.10/sdcardfs:sdcardfs")
         mgk_64_device_modules.append("drivers/soc/oplus/boot/oplus_custom/oplus_custom.ko")
         mgk_64_device_modules.append("drivers/input/fingerprint/oplus_fp_common/oplus_fpcommon.ko")
         mgk_64_device_modules.append("drivers/input/fingerprint/silead/silead_fp.ko")
         mgk_64_device_modules.append("drivers/power/oplus/v1/oplus_chg.ko")
         mgk_64_device_modules.remove("drivers/power/oplus/v2/oplus_chg_v2.ko")
-        mgk_64_device_modules.remove("drivers/power/oplus/test-kit/test-kit.ko")
+        #mgk_64_device_modules.remove("drivers/power/oplus/test-kit/test-kit.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6375-battery.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6357_battery.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6379-battery.ko")

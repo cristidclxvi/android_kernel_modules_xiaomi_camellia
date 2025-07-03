@@ -51,7 +51,7 @@
 #endif
 
 //#include <soc/oplus/system/oplus_mm_kevent_fb.h>
-
+#include "../oplus_display_onscreenfingerprint.h"
 //#include "ktz8866.h"
 #define CHANGE_FPS_EN 1
 
@@ -82,7 +82,7 @@ unsigned long esd_flag = 0;
 unsigned int g_shutdown_flag = 0;
 //static int current_esd_fps;
 static bool aod_state = false;
-int oplus_lcd_6382_aod;
+extern int oplus_lcd_6382_aod;
 /* enable this to check panel self -bist pattern */
 /* #define PANEL_BIST_PATTERN */
 /****************TPS65132***********/
@@ -611,6 +611,7 @@ static struct mtk_panel_params ext_params_45hz = {
 
 	.oplus_display_global_dre = 1,
 	.oplus_display_lcd_6382_aod = 1,
+	.oplus_display_lcd_tp_aod = 1,
 };
 
 static struct mtk_panel_params ext_params_48hz = {
@@ -673,6 +674,7 @@ static struct mtk_panel_params ext_params_48hz = {
 
 	.oplus_display_global_dre = 1,
 	.oplus_display_lcd_6382_aod = 1,
+	.oplus_display_lcd_tp_aod = 1,
 };
 
 static struct mtk_panel_params ext_params_50hz = {
@@ -735,6 +737,7 @@ static struct mtk_panel_params ext_params_50hz = {
 
 	.oplus_display_global_dre = 1,
 	.oplus_display_lcd_6382_aod = 1,
+	.oplus_display_lcd_tp_aod = 1,
 };
 
 static struct mtk_panel_params ext_params_60hz = {
@@ -797,6 +800,7 @@ static struct mtk_panel_params ext_params_60hz = {
 
 	.oplus_display_global_dre = 1,
 	.oplus_display_lcd_6382_aod = 1,
+	.oplus_display_lcd_tp_aod = 1,
 };
 
 static struct mtk_panel_params ext_params_90hz = {
@@ -859,6 +863,7 @@ static struct mtk_panel_params ext_params_90hz = {
 
 	.oplus_display_global_dre = 1,
 	.oplus_display_lcd_6382_aod = 1,
+	.oplus_display_lcd_tp_aod = 1,
 };
 
 static void cabc_switch(void *dsi, dcs_write_gce cb,void *handle, unsigned int cabc_mode)
@@ -1427,6 +1432,7 @@ static int lcm_probe(struct mipi_dsi_device *dsi)
 
 	/* wanhang */
 	register_device_proc("lcd", "ili7807s", "tm");
+	oplus_ofp_init(dev->of_node);
 	pr_info("%s- lcm,ili7807s_tm,vdo,60hz\n", __func__);
 
 	return ret;

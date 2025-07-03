@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2023 Oplus. All rights reserved.
+ * Copyright (C) 2023-2024 Oplus. All rights reserved.
  */
 #include <linux/version.h>
 #include <linux/plist.h>
@@ -26,9 +26,12 @@
 #define DEBUG_LB_RT_RUNNABLE_TIME
 #define DEBUG_LB_EXEC_TIME
 #define DEBUG_LB_TRACKME
+
+#define DEBUG_LB_TEST
 #endif
 
-#define OPLUS_LB_SYSTRACE_PID		9999
+#define OPLUS_LB_SYSTRACE_PID		1234
+
 /*
  * The maximum exit delay allowed for latency-sensitive tasks.
  */
@@ -57,9 +60,11 @@ struct lb_statistic {
 	/* statistics related to tick balance. */
 	atomic64_t tick_hit;
 	atomic64_t tick_running_rt_boost_succ;
-	atomic64_t tick_runnable_rt_boost_succ;
+	atomic64_t tick_pull_runnable_rt_boost_succ;
 	atomic64_t tick_running_ux_succ;
 	atomic64_t tick_runnable_ux_succ;
+	atomic64_t tick_pull_running_ux_succ;
+	atomic64_t tick_pull_runnable_ux_succ;
 	atomic64_t tick_running_normal_rt_succ;
 	atomic64_t tick_fail;
 
@@ -74,7 +79,25 @@ struct lb_statistic {
 struct lb_statistic lb_stat;
 
 static unsigned int lb_enable __read_mostly = 1;
-static unsigned int lb_debug __read_mostly;
+
+#ifdef DEBUG_LB_TEST
+struct lb_env;
+
+static unsigned int lb_test = 0;
+
+#define UT_CALC_ORDER_IDX					BIT(0)
+#define UT_FIND_CPU_IN_MIGRATION			BIT(1)
+#define UT_DUMP_CFS_TASKS					BIT(2)
+#define UT_DUMP_RT_PUSHABLE_TASKS			BIT(3)
+#define UT_DUMP_CPU_STATE					BIT(4)
+#define UT_GET_CPU_TIME						BIT(5)
+
+static void lb_test_tick(void);
+static void ut_dump_rt_pushable_tasks(struct lb_env *env);
+static void ut_dump_cfs_tasks(struct lb_env *env);
+struct proc_dir_entry *oplus_lb_test_proc_init(struct proc_dir_entry *pde);
+void oplus_lb_test_proc_deinit(struct proc_dir_entry *pde);
+#endif
 
 void migr_running_task_systrace(
 			unsigned int cpu, struct task_struct *p)
@@ -465,7 +488,7 @@ const_debug unsigned int sysctl_sched_migration_cost	= 500000UL;
 /*
  * Is this task likely cache-hot:
  */
-static int task_hot(struct task_struct *p, struct lb_env *env)
+__maybe_unused static int task_hot(struct task_struct *p, struct lb_env *env)
 {
 	s64 delta;
 
@@ -571,7 +594,6 @@ bool kthread_is_per_cpu(struct task_struct *p)
 static
 int can_migrate_task(struct task_struct *p, struct lb_env *env)
 {
-	int tsk_cache_hot;
 	/*
 	 * del by oplus.
 	 * int can_migrate = 1;
@@ -653,38 +675,7 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
 		 */
 		return 0;
 	}
-
-	/*
-	 * Aggressive migration if:
-	 * 1) active balance
-	 * 2) destination numa is preferred
-	 * 3) task is cache cold, or
-	 * 4) too many balance attempts have failed.
-	 */
-	if (env->flags & LBF_ACTIVE_LB)
-		return 1;
-
-	tsk_cache_hot = migrate_degrades_locality(p, env);
-	if (tsk_cache_hot == -1)
-		tsk_cache_hot = task_hot(p, env);
-
-	if (tsk_cache_hot <= 0 ||
-	    env->sd->nr_balance_failed > env->sd->cache_nice_tries) {
-		/*
-		 * del by oplus.
-		 * if (tsk_cache_hot == 1) {
-		 * 	schedstat_inc(env->sd->lb_hot_gained[env->idle]);
-		 * 	schedstat_inc(p->se.statistics.nr_forced_migrations);
-		 * }
-		 */
-		return 1;
-	}
-
-	/*
-	 * del by oplus.
-	 * schedstat_inc(p->se.statistics.nr_failed_migrations_hot);
-	 */
-	return 0;
+	return 1;
 }
 
 /*
@@ -969,18 +960,14 @@ u64 __get_time(struct task_struct *tsk, bool time_sel)
 		 * the task has completed at least one context switch.
 		 */
 		runnable_time = sched_info.run_delay - ots->snap_run_delay;
+		running_time = now - ots->enqueue_time;
 
-		if (sched_info.last_queued) {
-			/*
-			 * The value of rq->lock may be less than ots->enqueue_time
-			 * because rq->lock is not the latest value.
-			 */
-			running_time = now - ots->enqueue_time;
-			if (running_time >= runnable_time)
-				running_time = running_time - runnable_time;
-		} else {
-			running_time = 0;
-		}
+		/*
+		 * The value of rq->lock may be less than ots->enqueue_time
+		 * because rq->lock is not the latest value.
+		 */
+		if (running_time >= runnable_time)
+			running_time = running_time - runnable_time;
 	} else if (task_is_runnable_on_runqueue(tsk)) {
 		if (ots->snap_pcount == sched_info.pcount) {
 			/*
@@ -1087,8 +1074,11 @@ bool ux_need_up_migration(struct task_struct *p, struct rq *rq)
 
 #ifdef DEBUG_LB_TICK
 	trace_printk("OPLUS_LB_TICK[%d]: task=%s$%d, mask=[%*pbl], "
+		"on_runqueue=%d, runnnig_on_cpu=%d, runnable_on_runqueue=%d, "
 		"cpu=%d, cls=%d, running_time=%llu, threshold_time=%llu, true=%d\n",
 		__LINE__, p->comm, p->pid, cpumask_pr_args(p->cpus_ptr),
+		task_is_on_runqueue(p), task_is_runnnig_on_cpu(p),
+		task_is_runnable_on_runqueue(p),
 		cpu_of(rq), topology_cluster_id(cpu_of(rq)),
 		running_time, threshold_time, running_time >= threshold_time);
 #endif
@@ -1097,61 +1087,84 @@ bool ux_need_up_migration(struct task_struct *p, struct rq *rq)
 }
 
 /*
- * down_migr     : tasks allow migration to smaller cores.
- * up_migr       : tasks are allowed to migrate from small cores to
- *                 medium or large cores, and medium cores do not
- *                 need to be balanced.
- * normal_migr   : similar to up_migr, but can be in the same cluster.
- * newidle_migr  : migrate tasks from CPUs of smaller or same capacity.
- * tickpull_migr : Only used in tick balance to pull tasks from cpus
- *                 with the same capacity or less to the local cpu.
+ * DOWN_MIGR              : tasks allow migration to smaller cores.
+ * UP_MIGR                : tasks are allowed to migrate from small cores to
+ *                          medium or large cores, and medium cores do not
+ *                          need to be balanced.
+ * NORMAL_MIGR            : similar to UP_MIGR, but can be in the same cluster.
+ * NEWIDLE_MIGR           : migrate tasks from CPUs of smaller or same capacity.
+ * TICKPULL_MIGR_RUNNING  : pull long-running tasks from other CPUs. It should
+ *                          be noted that tasks can only be migrated from CPUs
+ *                          with smaller capacity to CPUs with larger capacity.
+ * TICKPULL_MIGR_RUNNABLE : pull long-runnable tasks from other CPUs. Unlike
+ *                          TICKPULL_MIGR_RUNNING, tasks can be migrated to
+ *                          CPUs with the same capacity.
  */
 enum migr_type {
-	down_migr = 1,
-	up_migr,
-	normal_migr,
-	newidle_migr,
-	tickpull_migr,
+	DOWN_MIGR = 1,
+	UP_MIGR,
+	NORMAL_MIGR,
+	NEWIDLE_MIGR,
+	TICKPULL_MIGR_RUNNING,
+	TICKPULL_MIGR_RUNNABLE,
 
 	/* Add the new type above this line. */
-	invalid_migr_type
+	INVALID_MIGR_TYPE
 };
 
 /*
  * The order of the walk cluster is determined according to the type
  * of migration. The detailed rules are described as follows:
  *
- * oplus_cpu_array[][]
- * 0 -> 1 -> 2
- * 1 -> 2 -> 0
- * 2 -> 1 -> 0
- *
- * 0 -> 1 -> 2
- * 1 -> 0 -> 2
- * 2 -> 1 -> 0
- *
- * up_migr
- * cur_idx    order_idx   walk_cnt
- *    0            1          2
- *    1            X          X
- *    2            X          X
+ * In a system with 3 clusters, the value of oplus_cpu_array[][] should
+ * be as follows. And the order of selecting CPU at this time should be:
+ * 0 [0 -> 1 -> 2]
+ * 1 [1 -> 2 -> 0]
+ * 2 [2 -> 1 -> 0]
+ * 3 [0 -> 1 -> 2]
+ * 4 [1 -> 0 -> 2]
+ * 5 [2 -> 1 -> 0]
  *
  *
- * normal_migr
- * cur_idx    order_idx   walk_cnt
- *    0            0          3
- *    1            1          2
- *    2            2          2
+ * SM8650
+ * cluster_id     cpus        capacity
+ *     0          cpu0,1        379
+ *     2          cpu5,6        867
+ *     1          cpu2,3,4      923
+ *     3          cpu7          1024
+ *
+ * 0 [0 -> 2 -> 1 -> 3]
+ * 1 [2 -> 1 -> 3 -> 0]
+ * 2 [1 -> 3 -> 2 -> 0]
+ * 3 [3 -> 1 -> 2 -> 0]
+ * 4 [0 -> 2 -> 1 -> 3]
+ * 5 [2 -> 0 -> 1 -> 3]
+ * 6 [1 -> 2 -> 0 -> 3]
+ * 7 [3 -> 1 -> 2 -> 0]
  *
  *
- * down_migr
+ * DOWN_MIGR
  * cur_idx    order_idx   walk_cnt
  *    0            X          X
  *    1            3          1
  *    2            4          2
  *
  *
- * newidle_migr
+ * UP_MIGR
+ * cur_idx    order_idx   walk_cnt
+ *    0            1          2
+ *    1            X          X
+ *    2            X          X
+ *
+ *
+ * NORMAL_MIGR
+ * cur_idx    order_idx   walk_cnt
+ *    0            0          3
+ *    1            1          2
+ *    2            2          2
+ *
+ *
+ * NEWIDLE_MIGR
  * cur_idx    order_idx   walk_cnt
  *    0            0          1
  *    1            1          3    (!SA_LANUNCH)
@@ -1159,7 +1172,14 @@ enum migr_type {
  *    2            2          3
  *
  *
- * tickpull_migr
+ * TICKPULL_MIGR_RUNNING
+ * cur_idx    order_idx   walk_cnt
+ *    0            X          X
+ *    1            0          1
+ *    2            X          X
+ *
+ *
+ * TICKPULL_MIGR_RUNNABLE
  * cur_idx    order_idx   walk_cnt
  *    0            0          1
  *    1            1          3
@@ -1180,37 +1200,41 @@ bool calc_order_idx(enum migr_type type,
 		return false;
 
 	/* valid type? */
-	if (type < down_migr || type >= invalid_migr_type)
+	if (type < DOWN_MIGR || type >= INVALID_MIGR_TYPE)
 		return false;
 
-	/*
-	 * Only tasks on the silver core are allowed to perform
-	 * the up_migr operation.
-	 */
-	if ((type == up_migr) && curr_cls > 0)
-		return false;
+	switch (type) {
+	case DOWN_MIGR:
+		/*
+		 * If p is already running on the silver core, there is
+		 * no need to perform the DOWN_MIGR operation.
+		 */
+		if (curr_cls == 0)
+			goto fail;
 
-	/*
-	 * If p is already running on the silver core, there is
-	 * no need to perform the down_migr operation.
-	 */
-	if ((type == down_migr) && curr_cls == 0)
-		return false;
-
-	if (type == down_migr) {
 		*order_idx = curr_cls + cls_nr - 1;
 		*walk_cnt = curr_cls;
-	} else if (type == up_migr) {
+		break;
+	case UP_MIGR:
+		/*
+		 * Only tasks on the silver core are allowed to perform
+		 * the UP_MIGR operation.
+		 */
+		if (curr_cls > 0)
+			goto fail;
+
 		*order_idx = curr_cls + 1;
 		*walk_cnt = cls_nr - *order_idx;
-	} else if (type == normal_migr) {
+		break;
+	case NORMAL_MIGR:
 		*order_idx = curr_cls;
 		if ((curr_cls == cls_nr-1) && (cls_nr >= 3)) {
 			*walk_cnt = cls_nr - 1;
 		} else {
 			*walk_cnt = cls_nr - *order_idx;
 		}
-	} else if (type == newidle_migr) {
+		break;
+	case NEWIDLE_MIGR:
 		if (sched_assist_scene(SA_LAUNCH) &&
 			curr_cls != 0 && curr_cls != cls_nr - 1) {
 			*order_idx = curr_cls + cls_nr;
@@ -1223,15 +1247,42 @@ bool calc_order_idx(enum migr_type type,
 				*walk_cnt = cls_nr;
 			}
 		}
-	} else if (type == tickpull_migr) {
+		break;
+	case TICKPULL_MIGR_RUNNING:
+		/*
+		 * Forbid pulling tasks to small and biggest cores.
+		 */
+		if ((curr_cls == 0) || (curr_cls == cls_nr-1))
+			goto fail;
+
+		/*
+		 * Pull tasks from the small core directly.
+		 */
+		*order_idx = 0;
+
+		/*
+		 * The -2' operation below means skipping small and biggest cores.
+		 */
+		*walk_cnt = cls_nr - 2;
+		break;
+	case TICKPULL_MIGR_RUNNABLE:
 		*order_idx = curr_cls;
 		if ((cls_nr >= 3) && (curr_cls == cls_nr-2)) {
 			*walk_cnt = cls_nr;
 		} else {
 			*walk_cnt = 1;
 		}
+		break;
+	default:
+		goto fail;
+		break;
 	}
 	return true;
+
+fail:
+	*order_idx = -1;
+	*walk_cnt = -1;
+	return false;
 }
 
 int find_cpu_in_migration(struct task_struct *p,
@@ -1347,37 +1398,6 @@ int find_cpu_in_migration(struct task_struct *p,
 	return -1;
 }
 
-__maybe_unused void debug_find_cpu_in_migration(struct rq *rq,
-			struct task_struct *task)
-{
-	unsigned int prev_cpu = cpu_of(rq);
-	unsigned int new_cpu = -1;
-
-	if (cpumask_weight(task->cpus_ptr) != 8)
-		return;
-
-	new_cpu = find_cpu_in_migration(task, prev_cpu, down_migr, false);
-	trace_printk("OPLUS_LB_TICK[%d]: down_migr : curr=%s$%d, "
-		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
-		__LINE__, task->comm, task->pid,
-		cpumask_pr_args(task->cpus_ptr),
-		prev_cpu, new_cpu);
-
-	new_cpu = find_cpu_in_migration(task, prev_cpu, up_migr, false);
-	trace_printk("OPLUS_LB_TICK[%d]: up_migr : curr=%s$%d, "
-		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
-		__LINE__, task->comm, task->pid,
-		cpumask_pr_args(task->cpus_ptr),
-		prev_cpu, new_cpu);
-
-	new_cpu = find_cpu_in_migration(task, prev_cpu, normal_migr, false);
-	trace_printk("OPLUS_LB_TICK[%d]: normal_migr : curr=%s$%d, "
-		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
-		__LINE__, task->comm, task->pid,
-		cpumask_pr_args(task->cpus_ptr),
-		prev_cpu, new_cpu);
-}
-
 static inline int same_cluster(int prev_cpu, int new_cpu)
 {
 	return topology_cluster_id(new_cpu) == topology_cluster_id(prev_cpu);
@@ -1411,24 +1431,6 @@ int oplus_kick_active_balance(struct rq *rq,
 	return ret;
 }
 
-__maybe_unused void debug_dump_cfs_tasks(struct lb_env *env)
-{
-	struct task_struct *p;
-	unsigned int i = 0;
-
-	lockdep_assert_rq_held(env->src_rq);
-
-	list_for_each_entry(p, &env->src_rq->cfs_tasks, se.group_node) {
-		trace_printk("OPLUS_LB_TICK[%d]: i=%d, task=%s$%d\n",
-			__LINE__, ++i, p->comm, p->pid);
-	}
-
-	list_for_each_entry_reverse(p, &env->src_rq->cfs_tasks, se.group_node) {
-		trace_printk("OPLUS_LB_TICK[%d]: i=%d, task=%s$%d\n",
-			__LINE__, i--, p->comm, p->pid);
-	}
-}
-
 /*
  * oplus_detach_running_task() -- Pick the task that was just running on the cpu.
  *
@@ -1440,8 +1442,9 @@ static struct task_struct *oplus_detach_running_task(struct lb_env *env)
 	struct oplus_rq *orq = (struct oplus_rq *) env->src_rq->android_oem_data1;
 	pid_t pid = orq->lb.pid;
 
-#ifdef DEBUG_LB_TICK
-	debug_dump_cfs_tasks(env);
+#ifdef DEBUG_LB_TEST
+	if (lb_test & UT_DUMP_CFS_TASKS)
+		ut_dump_cfs_tasks(env);
 #endif
 
 	lockdep_assert_rq_held(env->src_rq);
@@ -1619,24 +1622,6 @@ bool is_task_on_pushable_task(struct rq *rq,
 	return false;
 }
 
-__maybe_unused void debug_dump_rt_pushable_tasks(struct lb_env *env)
-{
-	struct rq *src_rq = env->src_rq;
-	struct plist_head *head = &src_rq->rt.pushable_tasks;
-	struct task_struct *p;
-	unsigned int i = 0;
-
-	lockdep_assert_rq_held(src_rq);
-
-	if (!has_runnable_rt_tasks(src_rq))
-		return;
-
-	plist_for_each_entry(p, head, pushable_tasks) {
-		trace_printk("OPLUS_LB_RT[%d]: i=%d, task=%s$%d\n",
-				__LINE__, ++i, p->comm, p->pid);
-	}
-}
-
 /*
  * oplus_detach_running_task() -- Pick the task that was just running on the cpu.
  *
@@ -1650,8 +1635,9 @@ static struct task_struct *oplus_detach_running_task_for_rt(struct lb_env *env)
 	pid_t pid = orq->lb.pid;
 	struct task_struct *p;
 
-#ifdef DEBUG_LB_RT_TICK
-	debug_dump_rt_pushable_tasks(env);
+#ifdef DEBUG_LB_TEST
+	if (lb_test & UT_DUMP_RT_PUSHABLE_TASKS)
+		ut_dump_rt_pushable_tasks(env);
 #endif
 
 	lockdep_assert_rq_held(env->src_rq);
@@ -1848,7 +1834,7 @@ out_unlock:
 	return 0;
 }
 
-static bool oplus_migrate_running_ux(void *data, struct rq *rq)
+static noinline bool oplus_migrate_running_ux(void *data, struct rq *rq)
 {
 	unsigned int prev_cpu = cpu_of(rq);
 	struct task_struct *curr = rq->curr;
@@ -1864,7 +1850,7 @@ static bool oplus_migrate_running_ux(void *data, struct rq *rq)
 	/*
 	 * No need to do load balance if no suitable cpu is found.
 	 */
-	new_cpu = find_cpu_in_migration(curr, prev_cpu, up_migr, true);
+	new_cpu = find_cpu_in_migration(curr, prev_cpu, UP_MIGR, true);
 	if ((new_cpu < 0) || (same_cluster(new_cpu, prev_cpu)))
 		return false;
 
@@ -1962,6 +1948,9 @@ static struct task_struct *oplus_pick_runnable_ux(
 		if (dst_cpu >= 0 && !cpumask_test_cpu(dst_cpu, task->cpus_ptr))
 			continue;
 
+		if (dst_cpu >= 0 && !cpumask_test_cpu(dst_cpu, &task->cpus_mask))
+			continue;
+
 		/* pick a task in runnable state. */
 		if (!task_is_runnable(task))
 			continue;
@@ -1993,7 +1982,7 @@ out:
 	return NULL;
 }
 
-static bool oplus_migrate_runnable_ux(void *data, struct rq *rq)
+static noinline bool oplus_migrate_runnable_ux(void *data, struct rq *rq)
 {
 	struct task_struct *ux_task = NULL;
 	unsigned int this_cpu = cpu_of(rq);
@@ -2010,7 +1999,7 @@ static bool oplus_migrate_runnable_ux(void *data, struct rq *rq)
 	/*
 	 * Choose a suitable cpu for this ux_task.
 	 */
-	new_cpu = find_cpu_in_migration(ux_task, this_cpu, normal_migr, false);
+	new_cpu = find_cpu_in_migration(ux_task, this_cpu, NORMAL_MIGR, false);
 	if (new_cpu < 0)
 		return false;
 
@@ -2252,7 +2241,7 @@ bool rt_need_up_migration(struct task_struct *p, struct rq *rq)
 	return running_time >= threshold_time;
 }
 
-static bool oplus_migrate_running_rt(void *data,
+static noinline bool oplus_migrate_running_rt(void *data,
 			struct rq *rq, bool rt_boost)
 {
 	unsigned int prev_cpu = cpu_of(rq);
@@ -2275,7 +2264,7 @@ static bool oplus_migrate_running_rt(void *data,
 	/*
 	 * No need to do load balance if no suitable cpu is found.
 	 */
-	new_cpu = find_cpu_in_migration(curr, prev_cpu, up_migr, true);
+	new_cpu = find_cpu_in_migration(curr, prev_cpu, UP_MIGR, true);
 	if ((new_cpu < 0) || (same_cluster(new_cpu, prev_cpu)))
 		return false;
 
@@ -2316,22 +2305,14 @@ static bool oplus_migrate_running_rt(void *data,
 static struct task_struct *oplus_pick_runnable_rt_boost(
 				int src_cpu, int dst_cpu, u64 *time);
 
-static bool oplus_migrate_runnable_rt(void *data,
+static noinline bool oplus_tickpull_runnable_rt(void *data,
 			struct rq *rq, bool rt_boost)
 {
-	struct ux_sched_cputopo ux_cputopo = ux_sched_cputopo;
-	cpumask_t search_cpus = CPU_MASK_NONE;
 	struct task_struct *curr = rq->curr;
-	struct task_struct *rt_task = NULL;
-	struct rq *iter_rq = NULL;
-	struct rq *busiest_rq = NULL;
-	struct oplus_rq *iter_orq = NULL;
 	struct oplus_rq *orq = (struct oplus_rq *)rq->android_oem_data1;
-	struct rq_flags rf;
 	int this_cpu = cpu_of(rq);
 	int cur_cls = topology_cluster_id(this_cpu);
 	int order_idx = -1, walk_cnt = -1, idx = -1;
-	int iter_cpu = -1, busiest_cpu = -1;
 
 	/*
 	 * Do not pull tasks from other CPUs if the running task on
@@ -2356,13 +2337,13 @@ static bool oplus_migrate_runnable_rt(void *data,
 	/*
 	 * Calculate order_idx and walk_cnt.
 	 */
-	if (!calc_order_idx(tickpull_migr, cur_cls, &order_idx, &walk_cnt))
+	if (!calc_order_idx(TICKPULL_MIGR_RUNNABLE, cur_cls, &order_idx, &walk_cnt))
 		return false;
 
 #ifdef DEBUG_LB_TICK
 	trace_printk("OPLUS_LB_TICKPULL[%d]: migr_type=%d, this_cpu=%d, cur_cls=%d, "
 		"order_idx=%d, walk_cnt=%d\n",
-		__LINE__, tickpull_migr, this_cpu, cur_cls, order_idx, walk_cnt);
+		__LINE__, TICKPULL_MIGR_RUNNABLE, this_cpu, cur_cls, order_idx, walk_cnt);
 #endif
 
 	/*
@@ -2370,6 +2351,15 @@ static bool oplus_migrate_runnable_rt(void *data,
 	 * in the runnable state for a long time.
 	 */
 	for (idx = 0; idx < walk_cnt; idx++) {
+		struct rq *iter_rq = NULL;
+		struct rq *busiest_rq = NULL;
+		struct oplus_rq *iter_orq = NULL;
+		struct task_struct *rt_task = NULL;
+		struct rq_flags rf;
+		struct ux_sched_cputopo ux_cputopo = ux_sched_cputopo;
+		cpumask_t search_cpus = CPU_MASK_NONE;
+		int iter_cpu = -1, busiest_cpu = -1;
+
 		cpumask_copy(&search_cpus, &ux_cputopo.oplus_cpu_array[order_idx][idx]);
 
 		for_each_cpu(iter_cpu, &search_cpus) {
@@ -2447,7 +2437,7 @@ static bool oplus_migrate_runnable_rt(void *data,
 			 */
 			attach_one_task(rq, rt_task);
 			oplus_loadbalance_systrace_print(OPLUS_LB_SYSTRACE_PID,
-					"tick_lb_runnable_rt_cpu", busiest_cpu, rt_task->pid);
+					"tickpull_runnable_rt_cpu", busiest_cpu, rt_task->pid);
 
 			return true;
 		}
@@ -2456,55 +2446,306 @@ static bool oplus_migrate_runnable_rt(void *data,
 	return false;
 }
 
-#if defined(DEBUG_LB_TICK)
-static void cpuidle_exit_latency_systrace(
-			unsigned int cpu, unsigned int exit_latency)
+static noinline bool oplus_tickpull_running_ux(void *data, struct rq *rq)
 {
-	char buf[256];
+	struct task_struct *curr = rq->curr;
+	struct oplus_rq *orq = (struct oplus_rq *)rq->android_oem_data1;
+	int this_cpu = cpu_of(rq);
+	int cur_cls = topology_cluster_id(this_cpu);
+	int order_idx = -1, walk_cnt = -1, idx = -1;
+	bool ret = false;
 
-	if (unlikely(global_debug_enabled & DEBUG_SYSTRACE)) {
-		snprintf(buf, sizeof(buf), "C|%d|cpuidle_exit_latency[%d]|%d\n",
-						OPLUS_LB_SYSTRACE_PID, cpu, exit_latency);
-		tracing_mark_write(buf);
-	}
-}
+	/*
+	 * Forbid pulling tasks to small cores.
+	 */
+	if (!cur_cls)
+		return false;
 
-static void dump_cpu_state(void)
-{
-	struct cpuidle_state *idle;
-	int i;
+	/*
+	 * Do not pull tasks from other CPUs if the running task on
+	 * the CPU is rt or ux.
+	 */
+	if(test_task_is_rt(curr))
+		return false;
 
-	for (i = 0; i < OPLUS_NR_CPUS; i++) {
-		idle = idle_get_state(cpu_rq(i));
+	if (get_ux_state(curr) & POSSIBLE_UX_MASK)
+		return false;
 
-		trace_printk("DEBUG_LB_TICK[%d]: cpu=%d, name=%s, desc=%s,"
-				" exit_latency=%dus, online=%d, active=%d, idle=%d,"
-				" available_idle=%d, nr_running=%d, h_nr_running=%d\n",
-			__LINE__, i,
-			idle?idle->name:"NULL", idle?idle->desc:"NULL",
-			idle?idle->exit_latency:0, cpu_online(i), cpu_active(i),
-			oplus_idle_cpu(i), available_idle_cpu(i),
-			cpu_rq(i)->nr_running, cpu_rq(i)->cfs.h_nr_running);
+	/*
+	 * Do not pull tasks from other CPUs if there is a ux or rt
+	 * tasks in runnable state on this_cpu.
+	 */
+	if (orq_has_ux_tasks(orq))
+		return false;
 
-		cpuidle_exit_latency_systrace(i, idle?idle->exit_latency:0);
-	}
-}
+	if (rt_rq_is_runnable(&rq->rt))
+		return false;
+
+	/*
+	 * Calculate order_idx and walk_cnt.
+	 */
+	if (!calc_order_idx(TICKPULL_MIGR_RUNNING, cur_cls, &order_idx, &walk_cnt))
+		return false;
+
+#ifdef DEBUG_LB_TICK
+	trace_printk("OPLUS_LB_TICKPULL[%d]: migr_type=%d, this_cpu=%d, cur_cls=%d, "
+		"order_idx=%d, walk_cnt=%d\n",
+		__LINE__, TICKPULL_MIGR_RUNNING, this_cpu, cur_cls, order_idx, walk_cnt);
 #endif
+
+	/*
+	 * Find a long-running ux task from other CPUs of the small core.
+	 */
+	for (idx = 0; idx < walk_cnt; idx++) {
+		struct rq *iter_rq = NULL;
+		struct oplus_rq *iter_orq = NULL;
+		struct task_struct *iter_task = NULL;
+		struct ux_sched_cputopo ux_cputopo = ux_sched_cputopo;
+		struct rq_flags rf;
+		cpumask_t search_cpus = CPU_MASK_NONE;
+		int iter_cpu = -1;
+
+		cpumask_copy(&search_cpus, &ux_cputopo.oplus_cpu_array[order_idx][idx]);
+
+		for_each_cpu(iter_cpu, &search_cpus) {
+			iter_rq = cpu_rq(iter_cpu);
+			iter_orq = (struct oplus_rq *) iter_rq->android_oem_data1;
+
+			/*
+			 * Cannot migrate to itself.
+			 */
+			if (iter_cpu == this_cpu)
+				continue;
+
+			/*
+			 * Only allow to pull tasks from the active cpu.
+			 */
+			if (!cpu_online(iter_cpu) || !cpu_active(iter_cpu))
+				continue;
+
+#ifdef CONFIG_OPLUS_ADD_CORE_CTRL_MASK
+			if (oplus_cpu_halted(iter_cpu))
+				continue;
+#endif
+
+			rq_lock(iter_rq, &rf);
+
+			/*
+			 * ux tasks running on other cpus
+			 */
+			iter_task = iter_rq->curr;
+
+			if (!test_task_is_fair(iter_task)) {
+				rq_unlock(iter_rq, &rf);
+				continue;
+			}
+
+			/*
+			 * check affinify
+			 */
+			if (!cpumask_test_cpu(this_cpu, &iter_task->cpus_mask)) {
+				rq_unlock(iter_rq, &rf);
+				continue;
+			}
+
+			/*
+			 * NOTE:
+			 * The system may crash because the two variables pus_ptr
+			 * and cpus_mask are not equal.
+			 */
+			if (!cpumask_test_cpu(this_cpu, iter_task->cpus_ptr)) {
+				rq_unlock(iter_rq, &rf);
+				continue;
+			}
+
+			if (!ux_need_up_migration(iter_task, iter_rq)) {
+				rq_unlock(iter_rq, &rf);
+				continue;
+			}
+
+#ifdef DEBUG_LB_RT_TICK
+			trace_printk("OPLUS_LB_TICKPULL_RUNNING_UX[%d]: this_cpu=%d, curr=%s$%d, "
+				"iter_cpu=%d, rt_task=%s$%d,\n",
+				__LINE__, this_cpu, curr->comm, curr->pid,
+				iter_cpu, iter_task->comm, iter_task->pid);
+#endif
+
+			rq_unlock(iter_rq, &rf);
+
+			/*
+			 * Check if the migration/X can be woken up.
+			 */
+			if (!oplus_kick_active_balance(iter_rq, iter_task, this_cpu))
+				continue;
+
+			/*
+			 * Wake up the migration/X to migrate the running task.
+			 */
+			ret = stop_one_cpu_nowait(iter_cpu,
+				oplus_active_load_balance_cpu_stop, iter_rq,
+				&iter_rq->active_balance_work);
+			if (!ret)
+				continue;
+
+			oplus_loadbalance_systrace_print(OPLUS_LB_SYSTRACE_PID,
+					"tickpull_running_ux_cpu", iter_cpu, iter_task->pid);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static noinline bool oplus_tickpull_runnable_ux(void *data, struct rq *rq)
+{
+	struct task_struct *curr = rq->curr;
+	struct oplus_rq *orq = (struct oplus_rq *)rq->android_oem_data1;
+	int this_cpu = cpu_of(rq);
+	int cur_cls = topology_cluster_id(this_cpu);
+	int order_idx = -1, walk_cnt = -1, idx = -1;
+
+	/*
+	 * Do not pull tasks from other CPUs if the running task on
+	 * the CPU is rt or ux.
+	 */
+	if(test_task_is_rt(curr))
+		return false;
+
+	if (get_ux_state(curr) & POSSIBLE_UX_MASK)
+		return false;
+
+	/*
+	 * Do not pull tasks from other CPUs if there is a ux or rt
+	 * tasks in runnable state on this_cpu.
+	 */
+	if (orq_has_ux_tasks(orq))
+		return false;
+
+	if (rt_rq_is_runnable(&rq->rt))
+		return false;
+
+	/*
+	 * Calculate order_idx and walk_cnt.
+	 */
+	if (!calc_order_idx(TICKPULL_MIGR_RUNNABLE, cur_cls, &order_idx, &walk_cnt))
+		return false;
+
+#ifdef DEBUG_LB_TICK
+	trace_printk("OPLUS_LB_TICKPULL[%d]: migr_type=%d, this_cpu=%d, cur_cls=%d, "
+		"order_idx=%d, walk_cnt=%d\n",
+		__LINE__, TICKPULL_MIGR_RUNNABLE, this_cpu, cur_cls, order_idx, walk_cnt);
+#endif
+
+	/*
+	 * Find a long-runnable ux task from other CPUs of the small core.
+	 */
+	for (idx = 0; idx < walk_cnt; idx++) {
+		struct rq *iter_rq = NULL;
+		struct oplus_rq *iter_orq = NULL;
+		struct task_struct *iter_task = NULL;
+		struct ux_sched_cputopo ux_cputopo = ux_sched_cputopo;
+		struct rq_flags rf;
+		cpumask_t search_cpus = CPU_MASK_NONE;
+		int iter_cpu = -1;
+
+		cpumask_copy(&search_cpus, &ux_cputopo.oplus_cpu_array[order_idx][idx]);
+
+		for_each_cpu(iter_cpu, &search_cpus) {
+			iter_rq = cpu_rq(iter_cpu);
+			iter_orq = (struct oplus_rq *) iter_rq->android_oem_data1;
+
+			/*
+			 * Cannot migrate to itself.
+			 */
+			if (iter_cpu == this_cpu)
+				continue;
+
+			/*
+			 * Only allow to pull tasks from the active cpu.
+			 */
+			if (!cpu_online(iter_cpu) || !cpu_active(iter_cpu))
+				continue;
+
+#ifdef CONFIG_OPLUS_ADD_CORE_CTRL_MASK
+			if (oplus_cpu_halted(iter_cpu))
+				continue;
+#endif
+
+			rq_lock(iter_rq, &rf);
+
+			/*
+			 * Skip if there is no ux task on iter_cpu.
+			 */
+			if (!orq_has_ux_tasks(iter_orq)) {
+				rq_unlock(iter_rq, &rf);
+				continue;
+			}
+
+			/*
+			 * Pick a long-runnable ux task from iter_cpu.
+			 */
+			iter_task = oplus_pick_runnable_ux(iter_cpu, this_cpu, NULL);
+			if (!iter_task) {
+				rq_unlock(iter_rq, &rf);
+				continue;
+			}
+
+			/*
+			 * Ha, ux_task can be migrated to this_cpu to perform enqueue
+			 * and dequeue operations.
+			 */
+			deactivate_task(iter_rq, iter_task, 0);
+			set_task_cpu(iter_task, this_cpu);
+			rq_unlock(iter_rq, &rf);
+
+			/*
+			 * NOTE:
+			 * A CPU that has entered the idle state may be selected
+			 * in tick_balance, so you need to actively call preempt_curr
+			 * to send an ipi interrupt to wake it up.
+			 */
+			rq_lock(rq, &rf);
+			attach_task(rq, iter_task);
+			rq_unlock(rq, &rf);
+
+			oplus_loadbalance_systrace_print(OPLUS_LB_SYSTRACE_PID,
+					"tickpull_runnable_ux_cpu", iter_cpu, iter_task->pid);
+
+#ifdef DEBUG_LB_RT_TICK
+			trace_printk("OPLUS_LB_TICKPULL_RUNNABLE_UX[%d]: this_cpu=%d, curr=%s$%d, "
+				"iter_cpu=%d, rt_task=%s$%d,\n",
+				__LINE__, this_cpu, curr->comm, curr->pid,
+				iter_cpu, iter_task->comm, iter_task->pid);
+#endif
+
+			return true;
+		}
+	}
+
+	return false;
+}
 
 bool __oplus_tick_balance(void *data, struct rq *rq)
 {
 	if (unlikely(!lb_enable))
 		return false;
 
-#if defined(DEBUG_LB_TICK)
-	dump_cpu_state();
-	(void) __get_time(rq->curr, true);
+#ifdef DEBUG_LB_TEST
+	lb_test_tick();
 #endif
 
 	/*
 	 * Update the total number of ticks.
 	 */
 	atomic64_inc(&lb_stat.tick_hit);
+
+	/*
+	 * Add tick-related systrace information to identify
+	 * situations where there is no tick interruption.
+	 */
+	oplus_loadbalance_systrace_print(OPLUS_LB_SYSTRACE_PID,
+			"tick_hit", smp_processor_id(), rq->nr_running);
 
 	/*
 	 * Migrate long-running/runnable tasks.
@@ -2524,8 +2765,8 @@ bool __oplus_tick_balance(void *data, struct rq *rq)
 		return true;
 	}
 
-	if (oplus_migrate_runnable_rt(data, rq, true)) {
-		atomic64_inc(&lb_stat.tick_runnable_rt_boost_succ);
+	if (oplus_tickpull_runnable_rt(data, rq, true)) {
+		atomic64_inc(&lb_stat.tick_pull_runnable_rt_boost_succ);
 		return true;
 	}
 
@@ -2536,6 +2777,16 @@ bool __oplus_tick_balance(void *data, struct rq *rq)
 
 	if (oplus_migrate_runnable_ux(data, rq)) {
 		atomic64_inc(&lb_stat.tick_runnable_ux_succ);
+		return true;
+	}
+
+	if (oplus_tickpull_running_ux(data, rq)) {
+		atomic64_inc(&lb_stat.tick_pull_running_ux_succ);
+		return true;
+	}
+
+	if (oplus_tickpull_runnable_ux(data, rq)) {
+		atomic64_inc(&lb_stat.tick_pull_runnable_ux_succ);
 		return true;
 	}
 
@@ -3187,7 +3438,7 @@ static bool oplus_newidle_balance_pull_task(struct rq *this_rq,
 	/*
 	 * Calculate order_idx and walk_cnt.
 	 */
-	if (!calc_order_idx(newidle_migr, cur_cls, &order_idx, &walk_cnt))
+	if (!calc_order_idx(NEWIDLE_MIGR, cur_cls, &order_idx, &walk_cnt))
 		return false;
 
 	atomic64_inc(&lb_stat.newidle_hit);
@@ -3914,93 +4165,37 @@ void oplus_lb_enable_proc_deinit(struct proc_dir_entry *pde)
 	remove_proc_entry("lb_enable", pde);
 }
 
-static int proc_lb_debug_read(struct seq_file *m, void *v)
-{
-	seq_printf(m, "lb_debug: %d\n", lb_debug);
-	return 0;
-}
-
-static int proc_lb_debug_open(struct inode *inode,
-			struct file *file)
-{
-	return single_open(file, proc_lb_debug_read, inode);
-}
-
-static ssize_t proc_lb_debug_write(struct file *file,
-					const char __user *buf, size_t count, loff_t *offset)
-{
-	char buffer[256];
-	char *token, *p = buffer;
-	int para[PARACNT];
-	int cnt = 0;
-
-	memset(buffer, 0, sizeof(buffer));
-	if (count > sizeof(buffer) - 1)
-		count = sizeof(buffer) - 1;
-
-	if (copy_from_user(buffer, buf, count))
-		return -EFAULT;
-
-	while ((token = strsep(&p, " ")) != NULL) {
-		if (cnt >= PARACNT)
-			break;
-
-		if (kstrtoint(strstrip(token), 10, &para[cnt]))
-			return -EINVAL;
-
-		cnt++;
-	}
-	lb_debug = !!para[0];
-
-	return count;
-}
-
-const struct proc_ops proc_lb_debug_operations = {
-	.proc_open = proc_lb_debug_open,
-	.proc_read = seq_read,
-	.proc_write = proc_lb_debug_write,
-	.proc_lseek = seq_lseek,
-	.proc_release = single_release,
-};
-
-struct proc_dir_entry *oplus_lb_debug_proc_init(
-			struct proc_dir_entry *pde)
-{
-	return proc_create("lb_debug", S_IRUGO | S_IWUGO, pde, &proc_lb_debug_operations);
-}
-
-void oplus_lb_debug_proc_deinit(struct proc_dir_entry *pde)
-{
-	remove_proc_entry("lb_debug", pde);
-}
-
 static int proc_lb_stat_read(struct seq_file *m, void *v)
 {
-	seq_printf(m, "tick_hit:                   %10llu\n",
+	seq_printf(m, "tick_hit:                             %10llu\n",
 		atomic64_read(&lb_stat.tick_hit));
-	seq_printf(m, "tick_running_rt_boost:      %10llu\n",
+	seq_printf(m, "tick_running_rt_boost:                %10llu\n",
 		atomic64_read(&lb_stat.tick_running_rt_boost_succ));
-	seq_printf(m, "tick_runnable_rt_boost:     %10llu\n",
-		atomic64_read(&lb_stat.tick_runnable_rt_boost_succ));
-	seq_printf(m, "tick_running_ux:            %10llu\n",
+	seq_printf(m, "tick_pull_runnable_rt_boost:          %10llu\n",
+		atomic64_read(&lb_stat.tick_pull_runnable_rt_boost_succ));
+	seq_printf(m, "tick_running_ux:                      %10llu\n",
 		atomic64_read(&lb_stat.tick_running_ux_succ));
-	seq_printf(m, "tick_runnable_ux:           %10llu\n",
+	seq_printf(m, "tick_runnable_ux:                     %10llu\n",
 		atomic64_read(&lb_stat.tick_runnable_ux_succ));
-	seq_printf(m, "tick_running_normal_rt:     %10llu\n",
+	seq_printf(m, "tick_pull_running_ux:                 %10llu\n",
+		atomic64_read(&lb_stat.tick_pull_running_ux_succ));
+	seq_printf(m, "tick_pull_runnable_ux:                %10llu\n",
+		atomic64_read(&lb_stat.tick_pull_runnable_ux_succ));
+	seq_printf(m, "tick_running_normal_rt:               %10llu\n",
 		atomic64_read(&lb_stat.tick_running_normal_rt_succ));
-	seq_printf(m, "tick_fail:                  %10llu\n",
+	seq_printf(m, "tick_fail:                            %10llu\n",
 		atomic64_read(&lb_stat.tick_fail));
 	seq_printf(m, "\n");
 
-	seq_printf(m, "newidle_hit:                %10llu\n",
+	seq_printf(m, "newidle_hit:                          %10llu\n",
 		atomic64_read(&lb_stat.newidle_hit));
-	seq_printf(m, "newidle_runnable_rt_boost:  %10llu\n",
+	seq_printf(m, "newidle_runnable_rt_boost:            %10llu\n",
 		atomic64_read(&lb_stat.newidle_runnable_rt_boost_succ));
-	seq_printf(m, "newidle_runnable_ux:        %10llu\n",
+	seq_printf(m, "newidle_runnable_ux:                  %10llu\n",
 		atomic64_read(&lb_stat.newidle_runnable_ux_succ));
-	seq_printf(m, "newidle_runnable_normal_rt: %10llu\n",
+	seq_printf(m, "newidle_runnable_normal_rt:           %10llu\n",
 		atomic64_read(&lb_stat.newidle_runnable_normal_rt_succ));
-	seq_printf(m, "newidle_fail:               %10llu\n",
+	seq_printf(m, "newidle_fail:                         %10llu\n",
 		atomic64_read(&lb_stat.newidle_fail));
 	seq_printf(m, "\n");
 
@@ -4038,7 +4233,9 @@ void oplus_lb_proc_init(struct proc_dir_entry *pde)
 	oplus_rt_boost_proc_init(pde);
 	oplus_lb_stat_proc_init(pde);
 	oplus_lb_enable_proc_init(pde);
-	oplus_lb_debug_proc_init(pde);
+#ifdef DEBUG_LB_TEST
+	oplus_lb_test_proc_init(pde);
+#endif
 #ifdef DEBUG_LB_TRACKME
 	oplus_trackme_proc_init(pde);
 #endif
@@ -4049,7 +4246,9 @@ void oplus_lb_proc_deinit(struct proc_dir_entry *pde)
 	oplus_rt_boost_proc_deinit(pde);
 	oplus_lb_stat_proc_deinit(pde);
 	oplus_lb_enable_proc_deinit(pde);
-	oplus_lb_debug_proc_deinit(pde);
+#ifdef DEBUG_LB_TEST
+	oplus_lb_test_proc_deinit(pde);
+#endif
 #ifdef DEBUG_LB_TRACKME
 	oplus_trackme_proc_deinit(pde);
 #endif
@@ -4088,4 +4287,241 @@ void oplus_loadbalance_deinit(void)
 	 * unregister_trace_android_vh_scheduler_tick(oplus_tick_balance, NULL);
 	 */
 }
+
+/***************************** lb_test *****************************/
+
+#ifdef DEBUG_LB_TEST
+static void ut_calc_order_idx(void)
+{
+	struct ux_sched_cputopo ux_cputopo = ux_sched_cputopo;
+	int cls_nr = ux_cputopo.cls_nr;
+	bool ret;
+	int order_idx = -1;
+	int walk_cnt = -1;
+	int cur_cls = 0;
+	int type;
+
+	for (type = DOWN_MIGR; type < INVALID_MIGR_TYPE; type++) {
+		for (cur_cls = 0; cur_cls < cls_nr; cur_cls++) {
+			ret = calc_order_idx(type, cur_cls, &order_idx, &walk_cnt);
+
+			trace_printk("DEBUG_LB_TEST[%d]: ret=%d, "
+				"migr_type=%d, cur_cls=%d, "
+				"order_idx=%d, walk_cnt=%d\n",
+				__LINE__, (int)ret, type, cur_cls,
+				ret?order_idx:-1, ret?walk_cnt:-1);
+		}
+	}
+}
+
+static void ut_find_cpu_in_migration(void)
+{
+	int prev_cpu = smp_processor_id();
+	unsigned int new_cpu = -1;
+	struct rq *rq = cpu_rq(prev_cpu);
+	struct task_struct *task = rq->curr;
+
+	if (cpumask_weight(task->cpus_ptr) != 8)
+		return;
+
+	new_cpu = find_cpu_in_migration(task, prev_cpu, DOWN_MIGR, false);
+	trace_printk("DEBUG_LB_TEST[%d]: DOWN_MIGR : curr=%s$%d, "
+		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
+		__LINE__, task->comm, task->pid,
+		cpumask_pr_args(task->cpus_ptr),
+		prev_cpu, new_cpu);
+
+	new_cpu = find_cpu_in_migration(task, prev_cpu, UP_MIGR, false);
+	trace_printk("DEBUG_LB_TEST[%d]: UP_MIGR : curr=%s$%d, "
+		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
+		__LINE__, task->comm, task->pid,
+		cpumask_pr_args(task->cpus_ptr),
+		prev_cpu, new_cpu);
+
+	new_cpu = find_cpu_in_migration(task, prev_cpu, NORMAL_MIGR, false);
+	trace_printk("DEBUG_LB_TEST[%d]: NORMAL_MIGR : curr=%s$%d, "
+		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
+		__LINE__, task->comm, task->pid,
+		cpumask_pr_args(task->cpus_ptr),
+		prev_cpu, new_cpu);
+
+	new_cpu = find_cpu_in_migration(task, prev_cpu, NEWIDLE_MIGR, false);
+	trace_printk("DEBUG_LB_TEST[%d]: NEWIDLE_MIGR : curr=%s$%d, "
+		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
+		__LINE__, task->comm, task->pid,
+		cpumask_pr_args(task->cpus_ptr),
+		prev_cpu, new_cpu);
+
+	new_cpu = find_cpu_in_migration(task, prev_cpu, TICKPULL_MIGR_RUNNING, false);
+	trace_printk("DEBUG_LB_TEST[%d]: TICKPULL_MIGR_RUNNING : curr=%s$%d, "
+		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
+		__LINE__, task->comm, task->pid,
+		cpumask_pr_args(task->cpus_ptr),
+		prev_cpu, new_cpu);
+
+	new_cpu = find_cpu_in_migration(task, prev_cpu, TICKPULL_MIGR_RUNNABLE, false);
+	trace_printk("DEBUG_LB_TEST[%d]: TICKPULL_MIGR_RUNNABLE : curr=%s$%d, "
+		"mask=[%*pbl], prev_cpu=%d, new_cpu=%d\n",
+		__LINE__, task->comm, task->pid,
+		cpumask_pr_args(task->cpus_ptr),
+		prev_cpu, new_cpu);
+}
+
+static void ut_dump_cfs_tasks(struct lb_env *env)
+{
+	struct task_struct *p;
+	unsigned int i = 0;
+
+	lockdep_assert_rq_held(env->src_rq);
+
+	list_for_each_entry(p, &env->src_rq->cfs_tasks, se.group_node) {
+		trace_printk("DEBUG_LB_TEST[%d]: i=%d, task=%s$%d\n",
+			__LINE__, ++i, p->comm, p->pid);
+	}
+
+	list_for_each_entry_reverse(p, &env->src_rq->cfs_tasks, se.group_node) {
+		trace_printk("DEBUG_LB_TEST[%d]: i=%d, task=%s$%d\n",
+			__LINE__, i--, p->comm, p->pid);
+	}
+}
+
+static void ut_dump_rt_pushable_tasks(struct lb_env *env)
+{
+	struct rq *src_rq = env->src_rq;
+	struct plist_head *head = &src_rq->rt.pushable_tasks;
+	struct task_struct *p;
+	unsigned int i = 0;
+
+	lockdep_assert_rq_held(src_rq);
+
+	if (!has_runnable_rt_tasks(src_rq))
+		return;
+
+	plist_for_each_entry(p, head, pushable_tasks) {
+		trace_printk("DEBUG_LB_TEST[%d]: i=%d, task=%s$%d\n",
+				__LINE__, ++i, p->comm, p->pid);
+	}
+}
+
+static void ut_get_time(void)
+{
+	int prev_cpu = smp_processor_id();
+	struct rq *rq = cpu_rq(prev_cpu);
+	struct task_struct *curr = rq->curr;
+
+	(void) __get_time(curr, true);
+}
+
+
+static void cpuidle_exit_latency_systrace(
+			unsigned int cpu, unsigned int exit_latency)
+{
+	char buf[256];
+
+	if (unlikely(global_debug_enabled & DEBUG_SYSTRACE)) {
+		snprintf(buf, sizeof(buf), "C|%d|cpuidle_exit_latency[%d]|%d\n",
+						OPLUS_LB_SYSTRACE_PID, cpu, exit_latency);
+		tracing_mark_write(buf);
+	}
+}
+
+static void ut_dump_cpu_state(void)
+{
+	struct cpuidle_state *idle;
+	int i;
+
+	for (i = 0; i < OPLUS_NR_CPUS; i++) {
+		idle = idle_get_state(cpu_rq(i));
+
+		trace_printk("DEBUG_LB_TEST[%d]: cpu=%d, name=%s, desc=%s,"
+				" exit_latency=%dus, online=%d, active=%d, idle=%d,"
+				" available_idle=%d, nr_running=%d, h_nr_running=%d\n",
+			__LINE__, i,
+			idle?idle->name:"NULL", idle?idle->desc:"NULL",
+			idle?idle->exit_latency:0, cpu_online(i), cpu_active(i),
+			oplus_idle_cpu(i), available_idle_cpu(i),
+			cpu_rq(i)->nr_running, cpu_rq(i)->cfs.h_nr_running);
+
+		cpuidle_exit_latency_systrace(i, idle?idle->exit_latency:0);
+	}
+}
+
+static void lb_test_tick(void)
+{
+	if (lb_test & UT_CALC_ORDER_IDX)
+		ut_calc_order_idx();
+
+	if (lb_test & UT_FIND_CPU_IN_MIGRATION)
+		ut_find_cpu_in_migration();
+
+	if (lb_test & UT_DUMP_CPU_STATE)
+		ut_dump_cpu_state();
+
+	if (lb_test & UT_GET_CPU_TIME)
+		ut_get_time();
+}
+
+static int proc_lb_test_read(struct seq_file *m, void *v)
+{
+	seq_printf(m, "lb_test: %d\n", lb_test);
+	return 0;
+}
+
+static int proc_lb_test_open(struct inode *inode,
+			struct file *file)
+{
+	return single_open(file, proc_lb_test_read, inode);
+}
+
+static ssize_t proc_lb_test_write(struct file *file,
+					const char __user *buf, size_t count, loff_t *offset)
+{
+	char buffer[256];
+	char *token, *p = buffer;
+	int para[PARACNT];
+	int cnt = 0;
+
+	memset(buffer, 0, sizeof(buffer));
+	if (count > sizeof(buffer) - 1)
+		count = sizeof(buffer) - 1;
+
+	if (copy_from_user(buffer, buf, count))
+		return -EFAULT;
+
+	while ((token = strsep(&p, " ")) != NULL) {
+		if (cnt >= PARACNT)
+			break;
+
+		if (kstrtoint(strstrip(token), 10, &para[cnt]))
+			return -EINVAL;
+
+		cnt++;
+	}
+	lb_test = para[0];
+
+	return count;
+}
+
+const struct proc_ops proc_lb_test_operations = {
+	.proc_open = proc_lb_test_open,
+	.proc_read = seq_read,
+	.proc_write = proc_lb_test_write,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+};
+
+struct proc_dir_entry *oplus_lb_test_proc_init(
+			struct proc_dir_entry *pde)
+{
+	return proc_create("lb_test", S_IRUGO | S_IWUGO,
+				pde, &proc_lb_test_operations);
+}
+
+void oplus_lb_test_proc_deinit(struct proc_dir_entry *pde)
+{
+	remove_proc_entry("lb_test", pde);
+}
+#endif
+
+
 

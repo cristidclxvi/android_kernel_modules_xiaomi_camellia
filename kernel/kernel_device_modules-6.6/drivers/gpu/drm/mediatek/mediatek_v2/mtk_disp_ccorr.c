@@ -78,6 +78,16 @@ struct mtk_drm_crtc *global_r2y_mtk_crtc[2] = {NULL, NULL};
 #endif
 
 static bool need_offset;
+#ifdef OPLUS_FEATURE_DISPLAY
+static int g_rgb_default_matrix[3][3] = {
+        {1024, 0, 0},
+        {0, 1024, 0},
+        {0, 0, 1024} };
+extern bool dl_rgb_flag;
+extern bool dl_color_flag;
+extern bool dl_ccorr_flag;
+#endif /* OPLUS_FEATURE_DISPLAY */
+
 static int disp_ccorr_write_coef_reg(struct mtk_ddp_comp *comp,
 	struct cmdq_pkt *handle, int lock);
 
@@ -351,6 +361,98 @@ static int disp_ccorr_set_interrupt(struct mtk_ddp_comp *comp, void *data)
 	return ret;
 }
 
+#ifdef OPLUS_FEATURE_DISPLAY
+int disp_set_dl_default_color_matrix(struct mtk_ddp_comp *comp) {
+	int i,j,ret;
+	struct mtk_disp_ccorr *ccorr_data = comp_to_ccorr(comp);
+	if (ccorr_data == NULL) {
+		DDPPR_ERR("%s: ccorr_data is NULL\n", __func__);
+		return -1;
+	}
+	struct mtk_disp_ccorr_primary *primary_data = ccorr_data->primary_data;
+	if (primary_data == NULL) {
+		DDPPR_ERR("%s: primary_data is NULL\n", __func__);
+		return -1;
+	}
+
+	if (dl_rgb_flag == true) {
+		for (i = 0; i < 3; i++) {
+			for (j = 0; j < 3; j++) {
+				primary_data->rgb_matrix[i][j] = g_rgb_default_matrix[i][j];
+			}
+		}
+		dl_rgb_flag = false;
+		ret = 0;
+	} else if (dl_color_flag == true) {
+		for (i = 0; i < 3; i++) {
+			for (j = 0; j < 3; j++) {
+				primary_data->ccorr_color_matrix[i][j] = g_rgb_default_matrix[i][j];
+			}
+		}
+		//dl_color_flag = false;
+		ret = 0;
+	} else {
+		dl_rgb_flag = false;
+		dl_color_flag = false;
+		ret = 0;
+	}
+       return ret;
+}
+
+int disp_ccorr_set_RGB_matrix(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle, int32_t matrix[16], bool flag)
+{
+	int i,j,ret;
+	struct mtk_disp_ccorr *ccorr_data = comp_to_ccorr(comp);
+	if (ccorr_data == NULL) {
+		DDPPR_ERR("%s: ccorr_data is NULL\n", __func__);
+		return -1;
+	}
+	struct mtk_disp_ccorr_primary *primary_data = ccorr_data->primary_data;
+	if (primary_data == NULL) {
+		DDPPR_ERR("%s: primary_data is NULL\n", __func__);
+		return -1;
+	}
+
+	if (ccorr_data->is_linear != 1) {
+		DDPMSG("%s: not linear, return\n", __func__);
+		return 0;
+	}
+
+	mutex_lock(&primary_data->data_lock);
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
+			if (flag == false) {
+				primary_data->rgb_matrix[i][j] = g_rgb_default_matrix[i][j];
+			} else {
+				primary_data->rgb_matrix[i][j] = matrix[j*4 +i];
+			}
+		}
+	}
+	dl_color_flag = false;
+	if (primary_data->disp_ccorr_coef == NULL) {
+		DDPPR_ERR("%s: primary_data->disp_ccorr_coef is NULL\n", __func__);
+		return -1;
+	}
+	primary_data->disp_ccorr_coef->offset[0] = (matrix[12] << 1) << 14;
+	primary_data->disp_ccorr_coef->offset[1] = (matrix[13] << 1) << 14;
+	primary_data->disp_ccorr_coef->offset[2] = (matrix[14] << 1) << 14;
+
+	ret = disp_ccorr_write_coef_reg(comp, handle, 0);
+
+	if (comp->mtk_crtc->is_dual_pipe) {
+		ret = disp_ccorr_write_coef_reg(ccorr_data->companion, handle, 0);
+	}
+
+	mutex_unlock(&primary_data->data_lock);
+
+	if (primary_data->ccorr_hw_valid == 0) {
+		disp_ccorr_bypass(comp, 0, PQ_FEATURE_DEFAULT, handle);
+		primary_data->ccorr_hw_valid = 1;
+	}
+	return ret;
+}
+#endif /* OPLUS_FEATURE_DISPLAY */
+
 /*
  * ret
  *     0 success
@@ -419,7 +521,17 @@ int disp_ccorr_set_color_matrix(struct mtk_ddp_comp *comp, struct cmdq_pkt *hand
 	for (i = 0; i < 3; i++) {
 		for (j = 0; j < 3; j++) {
 			/* Copy Color Matrix */
-			primary_data->ccorr_color_matrix[i][j] = matrix[j*4 + i];
+#ifdef OPLUS_FEATURE_DISPLAY
+			if (mtk_crtc->panel_ext && mtk_crtc->panel_ext->params
+				&& mtk_crtc->panel_ext->params->oplus_panel_use_rgb_gain) {
+				if (dl_color_flag == false)
+					primary_data->ccorr_color_matrix[i][j] = matrix[j*4 + i];
+			} else {
+				primary_data->ccorr_color_matrix[i][j] = matrix[j*4 + i];
+			}
+/*#else*/
+/*			primary_data->ccorr_color_matrix[i][j] = matrix[j*4 + i];*/
+#endif /* OPLUS_FEATURE_DISPLAY */
 
 			/* early jump out */
 			if (ccorr_without_gamma == 1)

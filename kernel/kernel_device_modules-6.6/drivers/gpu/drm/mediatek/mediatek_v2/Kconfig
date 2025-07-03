@@ -135,6 +135,13 @@ config OPLUS_FEATURE_DISPLAY_MAINLINE
 	  If you want to use oplus display mainline feature, you should set CONFIG_OPLUS_FEATURE_DISPLAY_MAINLINE
 	  to y or m in the platform config file like oplusxxxx.config.
 
+config OPLUS_DISPLAY_PLATFORM_COMMON_BUG
+	bool "Support oplus display common platform bug implementation"
+	help
+	  Define OPLUS_DISPLAY_PLATFORM_COMMON_BUG to support oplus display common platform bug implementation.
+	  If you want to use oplus display platform common bug feature, you should set CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG
+	  to y or m in the platform config file like oplusxxxx.config.
+
 config MTK_DISP_MMDVFS_INIT_SEQUENCE
 	bool "Configure initialization sequence of DISP and MMDVFS"
 	help

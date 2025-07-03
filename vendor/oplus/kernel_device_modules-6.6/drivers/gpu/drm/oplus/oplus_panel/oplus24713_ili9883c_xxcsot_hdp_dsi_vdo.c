@@ -110,6 +110,7 @@ static int first_set_dimming;
 static int first_set_bl;
 static int cabc_status = 3;
 static int esd_last_level;
+static int set_bl_dimming = 0;
 
 struct lcm {
 	struct device *dev;
@@ -906,8 +907,16 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb, void *handle,
 		return 0;
 	}
 	if ((aod_state == 1) && (level == 1000)) {
+		first_set_bl = 0;
+		set_bl_dimming = 3;
 		aod_state = false;
 		return 0;
+	}
+	if(set_bl_dimming > 1) {
+		set_bl_dimming--;
+	}else if(set_bl_dimming == 1) {
+		set_bl_dimming = 0;
+		first_set_bl = 1;
 	}
 
 	if (1==level)
@@ -948,7 +957,7 @@ static int panel_doze_disable(struct drm_panel *panel, void *dsi, dcs_write_gce 
 {
 
         struct lcm *ctx = panel_to_lcm(panel);
-        char bl_tb1[] = {0x53, 0x2c};
+        //char bl_tb1[] = {0x53, 0x2c};
 
         int mode;
         int blank;
@@ -976,7 +985,7 @@ static int panel_doze_disable(struct drm_panel *panel, void *dsi, dcs_write_gce 
 				pr_info("[TP] EXIT AOD success!\n");
         }
         pr_info(" %s : TP AOD reset end\n", __func__);
-        cb(dsi, handle, bl_tb1, ARRAY_SIZE(bl_tb1));
+        //cb(dsi, handle, bl_tb1, ARRAY_SIZE(bl_tb1));
         return 0;
 }
 

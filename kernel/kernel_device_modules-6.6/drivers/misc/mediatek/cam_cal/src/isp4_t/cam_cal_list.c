@@ -38,6 +38,7 @@ struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
         {ATOM_IMX355_SENSOR_ID, 0xA0, Common_read_region},
         {ATOM_S5K5E9YX04_SENSOR_ID, 0xA8, Common_read_region},
 	{OV50D40_SENSOR_ID_ORIS, 0xA0, Common_read_region},
+	{OV50D40_SENSOR_ID_ORISC, 0xA0, Common_read_region},
 	{GC05A2_SENSOR_ID_ORIS, 0x6E, Gc05a2_read_region, MAX_EEPROM_SIZE_8K},
 	/*B+B. No Cal data for main2 OV8856*/
 	{S5K2P7_SENSOR_ID, 0xA0, Common_read_region},

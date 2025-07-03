@@ -12,6 +12,7 @@
 #include <kernel/sched/sched.h>
 #include <linux/list.h>
 #include <include/linux/sched.h>
+#include <linux/cpuidle.h>
 #if IS_ENABLED(CONFIG_OPLUS_FEATURE_FRAME_BOOST)
 #include <../kernel/oplus_cpu/sched/frame_boost/frame_group.h>
 #endif
@@ -136,6 +137,7 @@ static inline bool task_fits_max(struct task_struct *p, int dst_cpu)
 	capacity = capacity_orig_of(dst_cpu);
 #else
 	struct rq *rq = cpu_rq(dst_cpu);
+
 	capacity = rq->cpu_capacity;
 #endif
 
@@ -257,19 +259,178 @@ int get_topology_cluster_id(int cpu)
 	return topology_cluster_id(cpu);
 }
 
+static inline bool select_target_cpu_fastpath(struct task_struct *task, int target_cpu)
+{
+	struct rq *orig_rq = cpu_rq(target_cpu);
+	struct oplus_rq *orig_orq = (struct oplus_rq *)orig_rq->android_oem_data1;
+
+	if (test_task_ux(orig_rq->curr))
+		return false;
+
+	if (orq_has_ux_tasks(orig_orq))
+		return false;
+
+	if (orig_rq->rt.rt_nr_running)
+		return false;
+
+#ifdef CONFIG_ARCH_MEDIATEK
+	if (!ux_eas_skip_little_cluster(task, target_cpu))
+		return false;
+#endif
+
+	if (!is_ux_task_prefer_cpu_for_scene(task, target_cpu))
+		return false;
+
+	if (is_vip_mvp(orig_rq->curr))
+		return false;
+
+	return true;
+}
+
+#define lsub_positive(_ptr, _val) do {				\
+	typeof(_ptr) ptr = (_ptr);				\
+	*ptr -= min_t(typeof(*ptr), *ptr, _val);		\
+} while (0)
+
+static inline unsigned long task_util(struct task_struct *p)
+{
+	return READ_ONCE(p->se.avg.util_avg);
+}
+
+static inline unsigned long _task_util_est(struct task_struct *p)
+{
+	return READ_ONCE(p->se.avg.util_est) & ~UTIL_AVG_UNCHANGED;
+}
+
+static unsigned long
+cpu_util(int cpu, struct task_struct *p, int dst_cpu, int boost)
+{
+	struct cfs_rq *cfs_rq = &cpu_rq(cpu)->cfs;
+	unsigned long util = READ_ONCE(cfs_rq->avg.util_avg);
+	unsigned long runnable;
+
+	if (boost) {
+		runnable = READ_ONCE(cfs_rq->avg.runnable_avg);
+		util = max(util, runnable);
+	}
+
+	/*
+	 * If @dst_cpu is -1 or @p migrates from @cpu to @dst_cpu remove its
+	 * contribution. If @p migrates from another CPU to @cpu add its
+	 * contribution. In all the other cases @cpu is not impacted by the
+	 * migration so its util_avg is already correct.
+	 */
+	if (p && task_cpu(p) == cpu && dst_cpu != cpu)
+		lsub_positive(&util, task_util(p));
+	else if (p && task_cpu(p) != cpu && dst_cpu == cpu)
+		util += task_util(p);
+
+	if (sched_feat(UTIL_EST)) {
+		unsigned long util_est;
+
+		util_est = READ_ONCE(cfs_rq->avg.util_est);
+
+		/*
+		 * During wake-up @p isn't enqueued yet and doesn't contribute
+		 * to any cpu_rq(cpu)->cfs.avg.util_est.enqueued.
+		 * If @dst_cpu == @cpu add it to "simulate" cpu_util after @p
+		 * has been enqueued.
+		 *
+		 * During exec (@dst_cpu = -1) @p is enqueued and does
+		 * contribute to cpu_rq(cpu)->cfs.util_est.enqueued.
+		 * Remove it to "simulate" cpu_util without @p's contribution.
+		 *
+		 * Despite the task_on_rq_queued(@p) check there is still a
+		 * small window for a possible race when an exec
+		 * select_task_rq_fair() races with LB's detach_task().
+		 *
+		 *   detach_task()
+		 *     deactivate_task()
+		 *       p->on_rq = TASK_ON_RQ_MIGRATING;
+		 *       -------------------------------- A
+		 *       dequeue_task()                    \
+		 *         dequeue_task_fair()              + Race Time
+		 *           util_est_dequeue()            /
+		 *       -------------------------------- B
+		 *
+		 * The additional check "current == p" is required to further
+		 * reduce the race window.
+		 */
+		if (p && unlikely(task_on_rq_queued(p) || current == p))
+			lsub_positive(&util_est, _task_util_est(p));
+
+		util = max(util, util_est);
+	}
+
+	return min(util, capacity_orig_of(cpu));
+}
+
+static unsigned long cpu_util_without(int cpu, struct task_struct *p)
+{
+	/* Task has no contribution or is new */
+	if (cpu != task_cpu(p) || !READ_ONCE(p->se.avg.last_update_time))
+		p = NULL;
+
+	return cpu_util(cpu, p, -1, 0);
+}
+
+/* access capacity_orig/cpu_capacity value that aware sugov/walt freqency limiter
+ * capacity_orig: qcom android_rvh_update_cpu_capacity
+ * cpu_capacity: mtk mtk_update_cpu_capacity
+ */
+static inline unsigned long oplus_capacity_spare_of(int cpu, struct task_struct *p)
+{
+#ifdef CONFIG_OPLUS_SYSTEM_KERNEL_QCOM
+	return max_t(long, capacity_orig_of(cpu) - cpu_util_without(cpu, p), 0);
+#else
+	return max_t(long, cpu_rq(cpu)->cpu_capacity - cpu_util_without(cpu, p), 0);
+#endif
+}
+
+static inline unsigned long cpu_util_cum(int cpu)
+{
+	struct cfs_rq *cfs_rq;
+	unsigned int util = 0;
+
+	cfs_rq = &cpu_rq(cpu)->cfs;
+	util = READ_ONCE(cfs_rq->avg.util_avg);
+
+	if (sched_feat(UTIL_EST))
+		util = max(util, READ_ONCE(cfs_rq->avg.util_est));
+
+	return min_t(unsigned long, util, capacity_orig_of(cpu));
+}
+
+static inline unsigned int get_idle_exit_latency(struct rq *rq)
+{
+	struct cpuidle_state *idle = idle_get_state(rq);
+
+	if (idle)
+		return idle->exit_latency;
+
+	return 0; /* CPU is not idle */
+}
+
 bool set_ux_task_to_prefer_cpu(struct task_struct *task, int *orig_target_cpu)
 {
-	struct rq *rq = NULL, *orig_rq = NULL;
-	struct oplus_rq *orq = NULL, *orig_orq = NULL;
+	struct rq *rq = NULL;
+	struct oplus_rq *orq = NULL;
 	struct ux_sched_cputopo ux_cputopo = ux_sched_cputopo;
 	int cls_nr = ux_cputopo.cls_nr - 1;
 	int start_cls = -1;
 	int cpu = 0;
 	int direction = -1;
-	int subopt_cpu = -1;
-	bool invalid_target = false;
+	int subopt_cpu = -1, vip_cpu = -1;
 	int orig_cls_id = 0;
 	cpumask_t search_cpus = CPU_MASK_NONE;
+	int max_spare_cap_cpu = -1;
+	int best_idle_cpu = -1;
+	unsigned long spare_cap = 0, max_spare_cap = 0;
+	unsigned long vip_max_spare_cap = 0;
+	unsigned long subopt_max_spare_cap = 0;
+	unsigned int min_exit_latency = UINT_MAX;
+	unsigned long best_idle_cuml_util = ULONG_MAX;
+	bool walk_next_cls = true;
 
 	if (unlikely(!global_sched_assist_enabled))
 		return false;
@@ -280,26 +441,12 @@ bool set_ux_task_to_prefer_cpu(struct task_struct *task, int *orig_target_cpu)
 	if (!test_task_ux(task))
 		return false;
 
-	if (*orig_target_cpu < 0 || *orig_target_cpu >= OPLUS_NR_CPUS)
-		invalid_target = true;
-
-	if (!invalid_target) {
-		orig_rq = cpu_rq(*orig_target_cpu);
-		orig_orq = (struct oplus_rq *)orig_rq->android_oem_data1;
+	/* 1. fastpath */
+	if (*orig_target_cpu >= 0 && *orig_target_cpu < OPLUS_NR_CPUS) {
 		orig_cls_id = get_topology_cluster_id(*orig_target_cpu);
+		if (select_target_cpu_fastpath(task, *orig_target_cpu))
+			return false;
 	}
-
-#ifdef CONFIG_ARCH_MEDIATEK
-	if (!invalid_target && !test_task_ux(orig_rq->curr)
-		&& !orq_has_ux_tasks(orig_orq) && !orig_rq->rt.rt_nr_running
-		&& is_ux_task_prefer_cpu_for_scene(task, *orig_target_cpu)
-		&& ux_eas_skip_little_cluster(task, *orig_target_cpu))
-#else
-	if (!invalid_target && !test_task_ux(orig_rq->curr)
-		&& !orq_has_ux_tasks(orig_orq) && !orig_rq->rt.rt_nr_running
-		&& is_ux_task_prefer_cpu_for_scene(task, *orig_target_cpu))
-#endif
-		return false;
 
 	start_cls = cls_nr = get_task_cls_for_scene(task);
 	/*
@@ -326,15 +473,49 @@ retry:
 		rq = cpu_rq(cpu);
 		orq = (struct oplus_rq *)rq->android_oem_data1;
 
+		/* fit status to check if taks util fits cpu capacity */
 		if (cls_nr == 0 && !task_fits_max(task, cpu))
 			break;
 
 		/*
-		 * strict_ux case: The system runs on a heavy load picking no cpu,
-		 *  and prevent EAS picking a small core
+		 * Find an optimal backup IDLE CPU
+		 * Looking for:
+		 * - favoring shallowest idle states
+		 * - CPU utilization
 		 */
-		if (strict_ux_task(task) && (subopt_cpu == -1))
-			subopt_cpu = cpu;
+		if (available_idle_cpu(cpu)) {
+			unsigned long new_util_cuml = 0;
+			unsigned int idle_exit_latency = get_idle_exit_latency(rq);
+
+			if (idle_exit_latency > min_exit_latency)
+				continue;
+
+			new_util_cuml = cpu_util_cum(cpu);
+			if (idle_exit_latency == min_exit_latency && new_util_cuml > best_idle_cuml_util)
+				continue;
+
+			best_idle_cpu = cpu;
+			min_exit_latency = idle_exit_latency;
+			best_idle_cuml_util = new_util_cuml;
+			continue;
+		}
+
+		/* If there is an idle cpu, then only the idle cpu is checked */
+		if (best_idle_cpu != -1)
+			continue;
+
+		spare_cap = oplus_capacity_spare_of(cpu, task);
+		/*
+		 * strict_ux case: The system runs on a heavy load picking no cpu,
+		 * and prevent EAS picking a small core, pick max_spare_cap cpu
+		 * and first cluster
+		 */
+		if (walk_next_cls && strict_ux_task(task) && !global_silver_perf_core) {
+			if (spare_cap > subopt_max_spare_cap) {
+				subopt_max_spare_cap = spare_cap;
+				subopt_cpu = cpu;
+			}
+		}
 
 		/* If an ux thread running on this CPU, drop it! */
 		if (oplus_get_ux_state(rq->curr) & SCHED_ASSIST_UX_MASK)
@@ -343,28 +524,66 @@ retry:
 		if (orq_has_ux_tasks(orq))
 			continue;
 
-		if (rq->curr->prio < MAX_RT_PRIO) {
-			subopt_cpu = cpu;
+		if (rq->curr->prio < MAX_RT_PRIO)
 			continue;
-		}
 
 		/* If there are rt threads in runnable state on this CPU, drop it! */
 		if (rt_rq_is_runnable(&rq->rt))
 			continue;
 
-		if (cpu_online(cpu)) {
-			trace_set_ux_task_to_prefer_cpu(task, "normal",
-							*orig_target_cpu, cpu,
-							start_cls, cls_nr,
-							&search_cpus);
-			*orig_target_cpu = cpu;
-			return true;
+		/* Find an optimal backup vip CPU for max_spare_cap */
+		if (is_vip_mvp(rq->curr)) {
+			if (spare_cap > vip_max_spare_cap) {
+				vip_max_spare_cap = spare_cap;
+				vip_cpu = cpu;
+			}
+			continue;
+		}
+
+		/*
+		 * Compute the maximum possible capacity we expect
+		 * to have available on this CPU once the task is
+		 * enqueued here.
+		 */
+		if (spare_cap > max_spare_cap) {
+			max_spare_cap = spare_cap;
+			max_spare_cap_cpu = cpu;
 		}
 	}
 
+	/* 2. cpu select idle cpu -> max_spare_cap cpu */
+	if (best_idle_cpu != -1) {
+		trace_set_ux_task_to_prefer_cpu(task, "idle",
+					*orig_target_cpu, best_idle_cpu,
+					start_cls, cls_nr,
+					&search_cpus);
+			*orig_target_cpu = best_idle_cpu;
+			return true;
+	}
+
+	if (max_spare_cap_cpu != -1) {
+		trace_set_ux_task_to_prefer_cpu(task, "spare_cap",
+						*orig_target_cpu, max_spare_cap_cpu,
+						start_cls, cls_nr,
+						&search_cpus);
+		*orig_target_cpu = max_spare_cap_cpu;
+		return true;
+	}
+
+	walk_next_cls = false;
 	cls_nr = cls_nr + direction;
 	if (cls_nr > 0 && cls_nr < ux_cputopo.cls_nr)
 		goto retry;
+
+	/* 3 No cpu select, Preempt VIP threads, Priority: ux > VIP. */
+	if (vip_cpu != -1) {
+		trace_set_ux_task_to_prefer_cpu(task, "vip",
+						*orig_target_cpu, vip_cpu,
+						start_cls, cls_nr,
+						&search_cpus);
+		*orig_target_cpu = vip_cpu;
+		return true;
+	}
 
 	if (subopt_cpu != -1) {
 		trace_set_ux_task_to_prefer_cpu(task, "subopt",

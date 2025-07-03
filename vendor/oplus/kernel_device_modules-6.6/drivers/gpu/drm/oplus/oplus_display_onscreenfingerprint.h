@@ -182,7 +182,6 @@ bool oplus_ofp_need_to_do_aod_off_compensation(void);
 bool oplus_ofp_need_to_skip_esd_check_after_aod_off(void);
 bool oplus_ofp_get_aod_state(void);
 int oplus_ofp_set_aod_state(bool aod_state);
-bool oplus_ofp_get_aod_unlocking(void);
 bool oplus_ofp_get_fake_aod_mode(void);
 int oplus_ofp_get_hbm_state(void);
 int oplus_ofp_set_hbm_state(bool hbm_state);

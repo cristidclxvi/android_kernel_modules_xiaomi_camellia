@@ -1467,6 +1467,7 @@ struct oplus_country_pwr_limit g_oplusCountryPwrLimit[] = {
     {23702, sizeof(g_rRlmPowerLimitConfiguration_23702)/sizeof(g_rRlmPowerLimitConfiguration_23702[0]), g_rRlmPowerLimitConfiguration_23702},//Ark-a
     {23703, sizeof(g_rRlmPowerLimitConfiguration_23702)/sizeof(g_rRlmPowerLimitConfiguration_23702[0]), g_rRlmPowerLimitConfiguration_23702},
     {23704, sizeof(g_rRlmPowerLimitConfiguration_23702)/sizeof(g_rRlmPowerLimitConfiguration_23702[0]), g_rRlmPowerLimitConfiguration_23702},
+    {24777, sizeof(g_rRlmPowerLimitConfiguration_23702)/sizeof(g_rRlmPowerLimitConfiguration_23702[0]), g_rRlmPowerLimitConfiguration_23702},
     {24700, sizeof(g_rRlmPowerLimitConfiguration_24700)/sizeof(g_rRlmPowerLimitConfiguration_24700[0]), g_rRlmPowerLimitConfiguration_24700},//oris-C
     {24701, sizeof(g_rRlmPowerLimitConfiguration_24700)/sizeof(g_rRlmPowerLimitConfiguration_24700[0]), g_rRlmPowerLimitConfiguration_24700},
     {24702, sizeof(g_rRlmPowerLimitConfiguration_24700)/sizeof(g_rRlmPowerLimitConfiguration_24700[0]), g_rRlmPowerLimitConfiguration_24700},
@@ -1540,6 +1541,7 @@ struct oplus_country_pwr_limit_default g_oplusCountryPwrLimitDefault[] = {
     {23702, sizeof(g_rRlmPowerLimitDefault_23702)/sizeof(g_rRlmPowerLimitDefault_23702[0]), g_rRlmPowerLimitDefault_23702},
     {23703, sizeof(g_rRlmPowerLimitDefault_23702)/sizeof(g_rRlmPowerLimitDefault_23702[0]), g_rRlmPowerLimitDefault_23702},
     {23704, sizeof(g_rRlmPowerLimitDefault_23702)/sizeof(g_rRlmPowerLimitDefault_23702[0]), g_rRlmPowerLimitDefault_23702},
+    {24777, sizeof(g_rRlmPowerLimitDefault_23702)/sizeof(g_rRlmPowerLimitDefault_23702[0]), g_rRlmPowerLimitDefault_23702},
     {24700, sizeof(g_rRlmPowerLimitDefault_24700)/sizeof(g_rRlmPowerLimitDefault_24700[0]), g_rRlmPowerLimitDefault_24700},
     {24701, sizeof(g_rRlmPowerLimitDefault_24700)/sizeof(g_rRlmPowerLimitDefault_24700[0]), g_rRlmPowerLimitDefault_24700},
     {24702, sizeof(g_rRlmPowerLimitDefault_24700)/sizeof(g_rRlmPowerLimitDefault_24700[0]), g_rRlmPowerLimitDefault_24700},

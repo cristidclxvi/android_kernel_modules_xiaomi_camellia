@@ -699,7 +699,10 @@ void mtk_layering_rule_init(struct drm_device *dev)
 
 		if(private->data->mmsys_id != MMSYS_MT6991 &&
 			private->data->mmsys_id != MMSYS_MT6899 &&
-			private->data->mmsys_id != MMSYS_MT6989) {
+			private->data->mmsys_id != MMSYS_MT6989 &&
+			private->data->mmsys_id != MMSYS_MT6833 &&
+			private->data->mmsys_id != MMSYS_MT6877 &&
+			private->data->mmsys_id != MMSYS_MT6768) {
 			comp = private->ddp_comp[module_data->attach_comp];
 			if (!comp) {
 				DDPPR_ERR("RPO attached comp is NULL %d\n", module_data->attach_comp);

@@ -6634,6 +6634,10 @@ static void mt6358_codec_init_reg(struct mt6358_priv *priv)
 	if (priv->init_dis_micbias) {
 		regmap_update_bits(priv->regmap, MT6358_ACCDET_CON13,
 				   0xFFFF, 0x3006);
+	} else if(priv->overshoot_dis_micbias)
+	{
+		regmap_update_bits(priv->regmap, MT6358_ACCDET_CON13,
+				   0xFFFF, 0x0);
 	} else {
 		regmap_update_bits(priv->regmap, MT6358_ACCDET_CON13,
 				   0xFFFF, 0x700E);
@@ -7810,6 +7814,10 @@ static int mt6358_parse_dt(struct mt6358_priv *priv)
 	priv->init_dis_micbias = of_property_read_bool(dev->of_node, "mediatek,init_dis_micbias");
 	if (priv->init_dis_micbias) {
 		dev_info(dev, "%s() micbias init not always enable!\n", __func__);
+	}
+	priv->overshoot_dis_micbias = of_property_read_bool(dev->of_node, "mediatek,overshoot_dis_micbias");
+	if (priv->overshoot_dis_micbias) {
+		dev_info(dev, "%s() micbias overshoot not always enable!\n", __func__);
 	}
 
 	return 0;

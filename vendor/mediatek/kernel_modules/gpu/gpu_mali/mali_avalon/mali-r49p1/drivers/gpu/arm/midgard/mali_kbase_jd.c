@@ -33,6 +33,8 @@
 #else
 #include <linux/signal.h>
 #endif
+#include <linux/sched.h>
+#include <uapi/linux/sched/types.h>
 
 #include <mali_kbase_jm.h>
 #include <mali_kbase_kinstr_jm.h>
@@ -1149,6 +1151,8 @@ void kbase_jd_done_worker(struct work_struct *data)
 	u64 cache_jc = katom->jc;
 	struct kbasep_js_atom_retained_state katom_retained_state;
 	bool context_idle;
+        struct sched_param  param = {.sched_priority = 48 };
+
 	base_jd_core_req core_req = katom->core_req;
 
 	/* Soft jobs should never reach this function */
@@ -1159,6 +1163,8 @@ void kbase_jd_done_worker(struct work_struct *data)
 	kbdev = kctx->kbdev;
 	js_kctx_info = &kctx->jctx.sched_info;
 	js_devdata = &kbdev->js_data;
+
+        sched_setscheduler(current, SCHED_RR, &param);
 
 	dev_dbg(kbdev->dev, "Enter atom %pK done worker for kctx %pK\n", (void *)katom,
 		(void *)kctx);

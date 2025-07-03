@@ -71,6 +71,7 @@ static struct thermal_zone_device *thz_dev;
 
 static unsigned int cl_dev_sysrst_state;
 static struct thermal_cooling_device *cl_dev_sysrst;
+extern unsigned int is_project(int project);
 
 static int mtktscharger_debug_log;
 /* This is to preserve last temperature readings from charger driver.
@@ -184,8 +185,13 @@ static int mtktscharger_get_hw_temp(void)
 	ret = power_supply_get_property(chg_psy,
 			POWER_SUPPLY_PROP_TEMP, &prop);
 	if (ret == 0) {
-		t = 100 * prop.intval;
-		prev_temp = t;
+		if(prop.intval > -100 && prop.intval < 100) {
+				t = 1000 * prop.intval;
+				prev_temp = t;
+		} else {
+				pr_err("%s: Invalid temperature value: %d\n", __func__, prop.intval);
+				t = prev_temp;
+		}
 	} else
 		t = prev_temp;
 	mtktscharger_dprintk("%s t=%d ret=%d\n",

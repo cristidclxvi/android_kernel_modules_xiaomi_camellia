@@ -46,7 +46,7 @@ extern int (*tp_gesture_enable_notifier)(unsigned int tp_index);
 unsigned long esd_flag = 0;
 extern int shutdown_flag;
 extern unsigned int oplus_display_brightness;
-extern unsigned long oplus_max_normal_brightness;
+extern unsigned int oplus_max_normal_brightness;
 unsigned int oplus_lcm_display_on;
 extern void __attribute((weak)) lcd_queue_load_tp_fw(void) { return; };
 extern int __attribute__((weak)) tp_gesture_enable_flag(void) {return 0;};
@@ -548,7 +548,7 @@ static const struct drm_display_mode performance_mode_4 = {
 
 #if defined(CONFIG_MTK_PANEL_EXT)
 
-static struct mtk_panel_params ext_params = {//60hz
+static struct mtk_panel_params ext_params = {//90hz
 	//.vfp_low_power = 4120,
 	//.cust_esd_check = 0,
 	.esd_check_enable = 0,
@@ -616,13 +616,14 @@ static struct mtk_panel_params ext_params = {//60hz
 */
 	.bdg_ssc_enable = 0,
 	.ssc_enable = 0,
-/*
+
 	.dyn = {
 		.switch_en = 1,
 		.pll_clk = HOPPING_MIPI_CLK,
 		.data_rate = HOPPING_DATA_RATE,
-		.hbp = HOPPING_HBP,
+		.hfp = HOPPING_HFP,
 	},
+/*
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
 	.round_corner_en = 1,
 	.corner_pattern_height = ROUND_CORNER_H_TOP,
@@ -634,7 +635,7 @@ static struct mtk_panel_params ext_params = {//60hz
 	.oplus_display_global_dre = 1,
 };
 
-static struct mtk_panel_params ext_params_mode_1 = {//90hz
+static struct mtk_panel_params ext_params_mode_1 = {//60hz
 	.vfp_low_power = 2480,
 	//.cust_esd_check = 0,
 	.esd_check_enable = 0,
@@ -698,13 +699,14 @@ static struct mtk_panel_params ext_params_mode_1 = {//90hz
 */
 	.bdg_ssc_enable = 0,
 	.ssc_enable = 0,
-/*
+
 	.dyn = {
 		.switch_en = 1,
 		.pll_clk = HOPPING_MIPI_CLK,
 		.data_rate = HOPPING_DATA_RATE,
-		.hbp = HOPPING_HBP,
+		.hfp = HOPPING_HFP,
 	},
+/*
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
 	.round_corner_en = 1,
 	.corner_pattern_height = ROUND_CORNER_H_TOP,
@@ -779,13 +781,14 @@ static struct mtk_panel_params ext_params_mode_2 = {//45hz
 */
 	.bdg_ssc_enable = 0,
 	.ssc_enable = 0,
-/*
+
 	.dyn = {
 		.switch_en = 1,
 		.pll_clk = HOPPING_MIPI_CLK,
 		.data_rate = HOPPING_DATA_RATE,
-		.hbp = HOPPING_HBP,
+		.hfp = HOPPING_HFP,
 	},
+/*
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
 	.round_corner_en = 1,
 	.corner_pattern_height = ROUND_CORNER_H_TOP,

@@ -405,6 +405,67 @@ int mtk_drm_setbacklight_without_lock(struct drm_crtc *crtc, unsigned int level,
 	return ret;
 }
 
+int mtk_drm_setbacklight_without_lock_video(struct drm_crtc *crtc, unsigned int level,
+	unsigned int panel_ext_param, unsigned int cfg_flag, struct cmdq_pkt *cmdq_handle)
+{
+	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
+	struct mtk_ddp_comp *comp = mtk_ddp_comp_request_output(mtk_crtc);
+	struct mtk_bl_ext_config bl_ext_config;
+	static unsigned int bl_cnt;
+	int index = drm_crtc_index(crtc);
+	int ret = 0;
+
+	if (mtk_crtc->oplus_apollo_br->oplus_power_on == false) {
+		level = 0;
+	}
+	CRTC_MMP_EVENT_START(index, backlight, (unsigned long)crtc,
+			level);
+
+	if (!(mtk_crtc->enabled)) {
+		DDPINFO("Sleep State set backlight stop --crtc not ebable\n");
+		CRTC_MMP_EVENT_END(index, backlight, 0, 0);
+
+		return -EINVAL;
+	}
+
+	if (!comp) {
+		DDPINFO("%s no output comp\n", __func__);
+		CRTC_MMP_EVENT_END(index, backlight, 0, 1);
+
+		return -EINVAL;
+	}
+
+	if (!cmdq_handle) {
+		DDPPR_ERR("%s:%d NULL cmdq handle\n", __func__, __LINE__);
+		return -EINVAL;
+	}
+
+	drm_trace_tag_value("sync_backlight", level);
+
+
+	oplus_printf_backlight_log(crtc, level);
+	if ((cfg_flag & (0x1 << SET_BACKLIGHT_LEVEL)) && !(cfg_flag & (0x1 << SET_ELVSS_PN))) {
+		DDPINFO("%s cfg_flag = %d, level=%d\n", __func__, cfg_flag, level);
+		oplus_display_panel_set_pwm_bl(crtc, cmdq_handle, level, true);
+	} else {
+		/* set backlight and elvss */
+		bl_ext_config.cfg_flag = cfg_flag;
+		bl_ext_config.backlight_level = level;
+		bl_ext_config.elvss_pn = panel_ext_param;
+		if (comp && comp->funcs && comp->funcs->io_cmd)
+			comp->funcs->io_cmd(comp, cmdq_handle, DSI_SET_BL_ELVSS, &bl_ext_config);
+	}
+
+	CRTC_MMP_MARK(index, backlight, bl_cnt, 0);
+	drm_trace_tag_mark("backlight");
+	bl_cnt++;
+
+	CRTC_MMP_EVENT_END(index, backlight, (unsigned long)crtc,
+			level);
+
+	return ret;
+}
+
 void oplus_sync_panel_brightness(struct drm_crtc *crtc)
 {
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
@@ -461,6 +522,44 @@ void oplus_sync_panel_brightness(struct drm_crtc *crtc)
 							mtk_crtc->oplus_apollo_br->oplus_backlight_need_sync);
 }
 EXPORT_SYMBOL(oplus_sync_panel_brightness);
+
+void oplus_sync_panel_brightness_video(struct drm_crtc *crtc, struct cmdq_pkt *cmdq_handle)
+{
+	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
+
+	if (!crtc) {
+		DDPPR_ERR("sync_panel_brightness - find crtc fail\n");
+		return;
+	}
+
+	if (!mtk_crtc->oplus_apollo_br) {
+		mtk_crtc->oplus_apollo_br = kzalloc(sizeof(struct oplus_apollo_brightness),
+			GFP_KERNEL);
+		DDPMSG("%s: oplus_apollo_brightness need allocate memory\n", __func__);
+	}
+
+	if (!mtk_crtc->oplus_apollo_br) {
+		DDPPR_ERR("%s: oplus_apollo_brightness allocate memory fail\n", __func__);
+		return;
+	}
+
+#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
+	if (oplus_ofp_is_supported()) {
+		oplus_ofp_lhbm_backlight_update(crtc);
+	}
+#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
+
+	if (!mtk_crtc->oplus_apollo_br->oplus_backlight_updated) {
+		return;
+	}
+
+	OPLUS_DSI_TRACE_BEGIN("sync_panel_brightness_video level(%d) sync(%d)", mtk_crtc->oplus_apollo_br->oplus_pending_backlight,
+							mtk_crtc->oplus_apollo_br->oplus_backlight_need_sync);
+	mtk_drm_setbacklight_without_lock_video(crtc, mtk_crtc->oplus_apollo_br->oplus_pending_backlight, 0, 0x1 << SET_BACKLIGHT_LEVEL, cmdq_handle);
+	OPLUS_DSI_TRACE_END("sync_panel_brightness_video level(%d) sync(%d)", mtk_crtc->oplus_apollo_br->oplus_pending_backlight,
+							mtk_crtc->oplus_apollo_br->oplus_backlight_need_sync);
+}
+EXPORT_SYMBOL(oplus_sync_panel_brightness_video);
 
 void oplus_update_apollo_para(struct drm_crtc *crtc)
 {

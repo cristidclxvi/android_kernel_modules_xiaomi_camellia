@@ -29,6 +29,7 @@ struct CAMERA_DEVICE_INFO gImgEepromInfoOrisC = {
     .i4SensorNum = 2,
     .pCamModuleInfo = {
         {OV50D40_SENSOR_ID_ORIS,  0xA0, {0x00, 0x06}, 0x50, 1, {0x44, 0x44, 0x46, 0x46}, "Cam_r0", "ov50d40_mipi_raw_oris"},
+        {OV50D40_SENSOR_ID_ORISC,  0xA0, {0x00, 0x06}, 0x50, 1, {0x44, 0x44, 0x46, 0x46}, "Cam_r0", "ov50d40_mipi_raw_orisc"},
         {HI846_SENSOR_ID_ORIS, 0x40, {0x00, 0x06}, 0x22B, 0, {0xFF,0xFF,0xFF,0xFF}, "Cam_f",  "hi846_mipi_raw_oris"},
     },
     .i4MWDataIdx = 0xFF,

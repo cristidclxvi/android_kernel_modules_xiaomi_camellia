@@ -676,6 +676,11 @@ static struct mtk_panel_params ext_params = {
 	},
 
 
+	.dyn = {
+		.switch_en = 1,
+		.data_rate = 1014,
+		.hfp = 123,
+	},
 	.data_rate = 1030, /* 943 */
 	//.data_rate_khz = 1030000, /* 943307 */
 	.physical_width_um = LCM_PHYSICAL_WIDTH,
@@ -696,6 +701,11 @@ static struct mtk_panel_params ext_params_50hz = {
 		.cmd = 0x09, .count = 3, .para_list[0] = 0x80, .para_list[1] = 0x03, .para_list[2] = 0x06,
 	},
 
+	.dyn = {
+		.switch_en = 1,
+		.data_rate = 1014,
+		.hfp = 123,
+	},
 	.data_rate = 1030, /* 943 */
 #if 0
 	//.data_rate_khz = 920190, /* 943307 */
@@ -739,6 +749,11 @@ static struct mtk_panel_params ext_params_60hz = {
 		.cmd = 0x09, .count = 3, .para_list[0] = 0x80, .para_list[1] = 0x03, .para_list[2] = 0x06,
 	},
 
+	.dyn = {
+		.switch_en = 1,
+		.data_rate = 1014,
+		.hfp = 123,
+	},
 	.data_rate = 1030, /* 943 */
 #if 0
 	//.data_rate_khz = 920190, /* 943307  待定*/
@@ -869,7 +884,7 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb, void *handle,
 				 unsigned int level)
 {
 	unsigned int bl_level = level;
-	/* bl_level = map_exp[level]; */
+//	bl_level = map_exp[level];
 	unsigned int mode;
 	char bl_diming_off[] = {0x53, 0x01, 0x24}; //bl_diming_off
 
@@ -894,6 +909,10 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb, void *handle,
 	//lcd cabc backlight
 	if (bl_level > 4095)
 		bl_level = 4095;
+
+	if ((bl_level > 16) && (bl_level < MAX_NORMAL_BRIGHTNESS)) {
+		bl_level = map_exp[level];
+	}
 	bl_tb0[1] = (bl_level >> 8)& 0x0f;
 	bl_tb0[2] = bl_level & 0xff;
 	esd_brightness = level;

@@ -536,8 +536,9 @@ static struct mtk_panel_params ext_params = {
 	.oplus_custom_hdr_red = 989,
 	.oplus_custom_hdr_green = 1024,
 	.oplus_custom_hdr_blue = 810,
-	.oplus_panel_use_rgb_gain = true,
 */
+	.oplus_panel_use_rgb_gain = true,
+
 	.dyn_fps = {
 		.switch_en = 1, .vact_timing_fps = 60,
 	},
@@ -647,8 +648,9 @@ static struct mtk_panel_params ext_params_90hz = {
         .oplus_custom_hdr_red = 989,
         .oplus_custom_hdr_green = 1024,
         .oplus_custom_hdr_blue = 810,
-        .oplus_panel_use_rgb_gain = true,
 */
+	.oplus_panel_use_rgb_gain = true,
+
         .dyn_fps = {
                 .switch_en = 1, .vact_timing_fps = 90,
         },
@@ -757,8 +759,9 @@ static struct mtk_panel_params ext_params_120hz = {
         .oplus_custom_hdr_red = 989,
         .oplus_custom_hdr_green = 1024,
         .oplus_custom_hdr_blue = 810,
-        .oplus_panel_use_rgb_gain = true,
 */
+	.oplus_panel_use_rgb_gain = true,
+
         .dyn_fps = {
                 .switch_en = 1, .vact_timing_fps = 120,
         },

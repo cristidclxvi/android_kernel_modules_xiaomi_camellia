@@ -19,29 +19,29 @@
 #define PHYSICAL_WIDTH              70000
 #define PHYSICAL_HEIGHT             156000
 #define MTK_DISP_EVENT_FOR_TOUCH    0x10
-#define MIPI_CLK                    374
-#define DATA_RATE                   770
+#define MIPI_CLK                    380
+#define DATA_RATE                   760
 #define HSA                         22
 #define HBP                         22
-#define VSA                         10
-#define VBP                         10
-#define HFP                         164
-#define HOPPING_MIPI_CLK            379
-#define HOPPING_DATA_RATE           758
-#define HOPPING_HBP                 38
+#define VSA                         8
+#define VBP                         48
+#define HFP                         156
+#define HOPPING_MIPI_CLK            385
+#define HOPPING_DATA_RATE           769
+#define HOPPING_HFP                 162
 /*Parameter setting for mode 0 Start*/
 #define MODE_0_FPS                  90
-#define MODE_0_VFP                  54
+#define MODE_0_VFP                  56
 /*Parameter setting for mode 0 End*/
 
 /*Parameter setting for mode 1 Start*/
 #define MODE_1_FPS                  60
-#define MODE_1_VFP                  1290
+#define MODE_1_VFP                  1310
 /*Parameter setting for mode 1 End*/
 
 /*Parameter setting for mode 2 Start*/
 #define MODE_2_FPS                  45
-#define MODE_2_VFP                  2530
+#define MODE_2_VFP                  2560
 /*Parameter setting for mode 2 End*/
 
 #if 0

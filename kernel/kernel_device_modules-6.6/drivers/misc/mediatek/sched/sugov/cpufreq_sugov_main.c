@@ -90,6 +90,7 @@ EXPORT_SYMBOL(fpsgo_notify_fbt_is_boost_fp);
 
 /* runnable_boost_enable ctrl */
 static bool runnable_boost_enable = DEFAULT_RUNNABLE_BOOST;
+module_param(runnable_boost_enable , bool , 0644);
 
 void set_runnable_boost_enable(bool boost_ctrl)
 {

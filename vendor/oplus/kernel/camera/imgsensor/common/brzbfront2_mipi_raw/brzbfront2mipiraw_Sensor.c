@@ -295,7 +295,10 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.imgsensor_pd_info = PARAM_UNDEFINED,
 		.ae_binning_ratio = 1000,
 		.fine_integ_line = 356,
-		.csi_param = {.dphy_trail = 0x40,},
+		.csi_param = {
+			.dphy_trail = 0x40,
+			.need_bw_change = 1,
+		},
 	},
 	{	/* B9-S7 3264x2448,30fps,2X2Binning,w/o PD,For MIPI(Around 868.8Mpps) */
 		.frame_desc = frame_desc_cap,
@@ -338,10 +341,13 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.imgsensor_pd_info = PARAM_UNDEFINED,
 		.ae_binning_ratio = 1000,
 		.fine_integ_line = 356,
-		.csi_param = {.dphy_trail = 0x40,},
+		.csi_param = {
+			.dphy_trail = 0x40,
+			.need_bw_change = 1,
+		},
 	},
 
-	{/*Reg B14, 3264x1836,30fps,2X2Binning,w/o PD,For(rst<21ms&cycle>1.5 s)*/
+	{/*3264x1836 @30FPS BIN w/o PD DataRate 780Mbps/lane VB Max.*/
 		.frame_desc = frame_desc_vid,
 		.num_entries = ARRAY_SIZE(frame_desc_vid),
 		.mode_setting_table = brzbfront2_normal_video_setting,
@@ -352,11 +358,11 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.hdr_mode = HDR_NONE,
 		.raw_cnt = 1,
 		.exp_cnt = 1,
-		.pclk = 460800000,
+		.pclk = 334400000,
 		.linelength = 3768,
-		.framelength = 4076,
+		.framelength = 2958,
 		.max_framerate = 300,
-		.mipi_pixel_rate = 433800000,
+		.mipi_pixel_rate = 312000000,
 		.readout_length = 0,
 		.read_margin = 10,
 		.framelength_step = 1,
@@ -382,7 +388,10 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.imgsensor_pd_info = PARAM_UNDEFINED,
 		.ae_binning_ratio = 1000,
 		.fine_integ_line = 356,
-		.csi_param = {.dphy_trail = 0x47,},
+		.csi_param = {
+			.dphy_trail = 0x47,
+			.need_bw_change = 1,
+		},
 	},
 	{/*Reg B7-S8, 3264x1856,60fps,2X2Binning,w/o PD,For seamless2 group*/
 		.frame_desc = frame_desc_hs,
@@ -425,7 +434,10 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.imgsensor_pd_info = PARAM_UNDEFINED,
 		.ae_binning_ratio = 1000,
 		.fine_integ_line = 356,
-		.csi_param = {.dphy_trail = 0x47,},
+		.csi_param = {
+			.dphy_trail = 0x47,
+			.need_bw_change = 1,
+		},
 	},
 	{/*Reg B7-S8, 3264x1856,60fps,2X2Binning,w/o PD,For seamless2 group*/
 		.frame_desc = frame_desc_slim,
@@ -468,7 +480,10 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.imgsensor_pd_info = PARAM_UNDEFINED,
 		.ae_binning_ratio = 1000,
 		.fine_integ_line = 356,
-		.csi_param = {.dphy_trail = 0x47,},
+		.csi_param = {
+			.dphy_trail = 0x47,
+			.need_bw_change = 1,
+		},
 	},
 	{/*Reg V2-4 1280x960,10fps,4x4Binning_Crop,w/o PD,For MIPI<1.5G(Skew off)&Hblank=2.4us*/
 		.frame_desc = frame_desc_cus1,
@@ -513,6 +528,7 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.fine_integ_line = 879,
 		.csi_param = {
 			.dphy_trail = 0x60,
+			.need_bw_change = 1,
 		},
 		.aov_mode = 1,
 		.s_dummy_support = 0,
@@ -559,7 +575,10 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.imgsensor_pd_info = PARAM_UNDEFINED,
 		.ae_binning_ratio = 1000,
 		.fine_integ_line = 617,
-		.csi_param = {.dphy_trail = 0xB3,},
+		.csi_param = {
+			.dphy_trail = 0xB3,
+			.need_bw_change = 1,
+		},
 		.multi_exposure_ana_gain_range[IMGSENSOR_EXPOSURE_LE].max = BASEGAIN * 16,
 	},
 	{/*Reg_B8-3 3264x1856,15fps,2X2Binning,w/o PD,For MaxVB*/
@@ -603,7 +622,10 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.imgsensor_pd_info = PARAM_UNDEFINED,
 		.ae_binning_ratio = 1000,
 		.fine_integ_line = 356,
-		.csi_param = {.dphy_trail = 0xB3,},
+		.csi_param = {
+			.dphy_trail = 0xB3,
+			.need_bw_change = 1,
+		},
 	},
 	{/*Reg V3 1640x1232,30fps,4x4Binning,w/o PD,For MaxVB&Binning-Ave*/
 		.frame_desc = frame_desc_cus4,
@@ -646,7 +668,9 @@ static struct subdrv_mode_struct mode_struct[] = {
 		.imgsensor_pd_info = PARAM_UNDEFINED,
 		.ae_binning_ratio = 1000,
 		.fine_integ_line = 356,
-		.csi_param = {},
+		.csi_param = {
+			.need_bw_change = 1,
+		},
 	},
 };
 

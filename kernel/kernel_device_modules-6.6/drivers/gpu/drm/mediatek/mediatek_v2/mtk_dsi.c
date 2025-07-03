@@ -431,6 +431,12 @@
 #define DSI_VM_CMD_CON1		0x114
 atomic_t pps_vfp_event = ATOMIC_INIT(0);
 #endif
+
+#ifdef OPLUS_FEATURE_DISPLAY
+int oplus_lcd_6382_aod = 0;
+EXPORT_SYMBOL(oplus_lcd_6382_aod);
+#endif
+
 struct phy;
 unsigned int line_back_to_LP = 1;
 
@@ -6637,8 +6643,18 @@ static void mtk_dsi_encoder_enable(struct drm_encoder *encoder)
 			DDP_PROFILE("[PROFILE] %s before notify end\n", __func__);
 		}
 
-		if ((priv->data->mmsys_id == MMSYS_MT6768 || priv->data->mmsys_id == MMSYS_MT6833) && is_bdg_supported())
-			mtk_output_bdg_enable(dsi, false);
+		if (mtk_crtc && mtk_crtc->panel_ext && mtk_crtc->panel_ext->params &&
+						mtk_crtc->panel_ext->params->oplus_display_lcd_6382_aod == 1) {
+			DDPMSG("oplus_lcd_6382_aod=%d\n",oplus_lcd_6382_aod);
+			if ((priv->data->mmsys_id == MMSYS_MT6768 || priv->data->mmsys_id == MMSYS_MT6833) &&
+				is_bdg_supported() && (oplus_lcd_6382_aod==0)) {
+				mtk_output_bdg_enable(dsi, false);
+				oplus_lcd_6382_aod=1;
+			}
+		} else {
+			if ((priv->data->mmsys_id == MMSYS_MT6768 || priv->data->mmsys_id == MMSYS_MT6833) && is_bdg_supported()) 
+				mtk_output_bdg_enable(dsi, false);
+		}
 
 		CRTC_MMP_MARK(index, dsi_resume, 1, 0);
 

@@ -58,7 +58,7 @@ static unsigned int esd_brightness = 1023;
 static u32 flag_hbm = 0;
 static bool flag_hbm_exit_status = false;
 extern unsigned int oplus_display_brightness;
-extern unsigned long oplus_max_normal_brightness;
+extern unsigned int oplus_max_normal_brightness;
 //extern void disp_aal_set_dre_en(int enable);
 static bool is_probe_finish = false;
 extern void lcdinfo_notify(unsigned long val, void *v);

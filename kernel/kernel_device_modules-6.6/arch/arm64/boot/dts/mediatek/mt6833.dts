@@ -59,6 +59,7 @@
 	chosen: chosen {
 		bootargs = "console=tty0 root=/dev/ram \
 			8250.nr_uarts=4 \
+			log_buf_len=2m \
 			rcupdate.rcu_expedited=1 \
 			restrict_cma_redirect \
 			vmalloc=400M swiotlb=noforce \
@@ -5050,6 +5051,7 @@ gpufreq: gpufreq {
 		clock-names = "main", "dma";
 		clock-div = <1>;
 		mediatek,control-rs-stop;
+		mediatek,dynamic-speed;
 	};
 
 	i2c3: i2c@11cb0000 {
@@ -5074,6 +5076,7 @@ gpufreq: gpufreq {
 		clock-names = "main", "dma";
 		clock-div = <1>;
 		mediatek,control-rs-stop;
+		mediatek,dynamic-speed;
 	};
 
 	i2c5: i2c@11e01000 {

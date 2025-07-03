@@ -456,17 +456,32 @@ const unsigned int memcg_vm_event_stat[] = {
 #endif
 };
 #define NR_MEMCG_EVENTS ARRAY_SIZE(memcg_vm_event_stat)
+
+/*
+ * Must be consistent with the data structure in memcontrol.c
+ */
 struct memcg_vmstats_percpu {
+	/* Stats updates since the last flush */
+	unsigned int			stats_updates;
+
+	/* Cached pointers for fast iteration in memcg_rstat_updated() */
+	struct memcg_vmstats_percpu	*parent;
+	struct memcg_vmstats		*vmstats;
+
+	/* The above should fit a single cacheline for memcg_rstat_updated() */
+
 	/* Local (CPU and cgroup) page state & events */
 	long			state[MEMCG_NR_STAT];
 	unsigned long		events[NR_MEMCG_EVENTS];
+
 	/* Delta calculation for lockless upward propagation */
 	long			state_prev[MEMCG_NR_STAT];
 	unsigned long		events_prev[NR_MEMCG_EVENTS];
+
 	/* Cgroup1: threshold notifications & softlimit tree updates */
 	unsigned long		nr_page_events;
 	unsigned long		targets[MEM_CGROUP_NTARGETS];
-};
+} ____cacheline_aligned;
 
 
 /* idx can be of type enum memcg_stat_item or node_stat_item. */

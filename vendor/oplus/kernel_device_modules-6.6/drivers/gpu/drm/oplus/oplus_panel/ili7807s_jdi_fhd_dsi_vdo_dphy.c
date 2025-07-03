@@ -39,7 +39,7 @@
 unsigned long esd_flag = 1;
 unsigned int g_shutdown_flag = 1;
 extern unsigned int oplus_display_brightness;
-extern unsigned long oplus_max_normal_brightness;
+extern unsigned int oplus_max_normal_brightness;
 unsigned int oplus_lcm_display_on;
 extern void __attribute((weak)) lcd_queue_load_tp_fw(void) { return; };
 extern int __attribute__((weak)) tp_gesture_enable_flag(void) {return 0;};

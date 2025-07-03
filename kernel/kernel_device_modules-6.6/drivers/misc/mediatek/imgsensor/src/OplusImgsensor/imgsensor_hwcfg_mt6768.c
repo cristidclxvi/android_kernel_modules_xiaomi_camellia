@@ -81,10 +81,10 @@ struct IMGSENSOR_INIT_FUNC_LIST gimgsensor_sensor_list_24713[] = {
 
 struct IMGSENSOR_INIT_FUNC_LIST gimgsensor_sensor_list_24700[] = {
 /*ark*/
-#if defined(OV50D40_MIPI_RAW_ORIS)
-	{OV50D40_SENSOR_ID_ORIS,
-	SENSOR_DRVNAME_OV50D40_MIPI_RAW_ORIS,
-	OV50D40_MIPI_RAW_ORIS_SensorInit},
+#if defined(OV50D40_MIPI_RAW_ORISC)
+	{OV50D40_SENSOR_ID_ORISC,
+	SENSOR_DRVNAME_OV50D40_MIPI_RAW_ORISC,
+	OV50D40_MIPI_RAW_ORISC_SensorInit},
 #endif
 #if defined(HI846_MIPI_RAW_ORIS)
 	{HI846_SENSOR_ID_ORIS,
@@ -708,9 +708,9 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence_24713[] = {
 
 struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence_24700[] = {
 /*ORIS-C*/
-#if defined(OV50D40_MIPI_RAW_ORIS)
+#if defined(OV50D40_MIPI_RAW_ORISC)
     {
-        SENSOR_DRVNAME_OV50D40_MIPI_RAW_ORIS,
+        SENSOR_DRVNAME_OV50D40_MIPI_RAW_ORISC,
         {
             {RST, Vol_Low, 1},
             {DOVDD, Vol_1800, 3},

@@ -1602,7 +1602,9 @@
 #define SENSOR_DRVNAME_OV08D_MIPI_RAW23031           "ov08d_mipi_raw23031"
 #define GC02M1_SENSOR_ID23031                        (0x02e0 + SENSOR_ID_OFFSET_23031)
 #define SENSOR_DRVNAME_GC02M1_MIPI_RAW23031          "gc02m1_mipi_raw23031"
-
+//Oris-c
+#define OV50D40_SENSOR_ID_ORISC                      (0x565044 + 0x4)//0x565048
+#define SENSOR_DRVNAME_OV50D40_MIPI_RAW_ORISC        "ov50d40_mipi_raw_orisc"
 //Oris-a
 #define OV50D40_SENSOR_ID_ORIS                      (0x565044 + 0x3)//0x565047
 #define SENSOR_DRVNAME_OV50D40_MIPI_RAW_ORIS        "ov50d40_mipi_raw_oris"

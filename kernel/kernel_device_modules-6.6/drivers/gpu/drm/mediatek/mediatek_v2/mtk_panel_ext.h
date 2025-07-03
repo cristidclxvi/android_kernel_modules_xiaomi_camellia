@@ -698,6 +698,10 @@ struct mtk_panel_params {
 	/*exit aod backlight setting*/
 	unsigned int doze_disable_backlight_flag_enable;
 	unsigned int oplus_display_lcd_6382_aod;
+
+#ifdef OPLUS_FEATURE_DISPLAY
+	bool oplus_panel_use_rgb_gain;
+#endif /* OPLUS_FEATURE_DISPLAY */
 };
 
 struct mtk_panel_ext {

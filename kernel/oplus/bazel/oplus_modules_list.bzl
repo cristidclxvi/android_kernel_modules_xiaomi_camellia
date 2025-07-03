@@ -136,7 +136,6 @@ COMMON_OPLUS_MODULES_LIST = [
     "//vendor/oplus/kernel/dfr:oplus_inject",
     "//vendor/oplus/kernel/dfr:oplus_inject_aw8692x",
     "//vendor/oplus/kernel/graphics:oplus_sync_fence",
-    "//vendor/oplus/kernel/oplus_performance_5.10/sdcardfs:sdcardfs",
 ]
 
 """

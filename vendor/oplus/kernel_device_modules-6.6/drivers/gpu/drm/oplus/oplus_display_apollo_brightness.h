@@ -59,7 +59,7 @@ static struct backlight_log {
 
 
 /* -------------------- function implementation ---------------------------------------- */
-
+void oplus_sync_panel_brightness_video(struct drm_crtc *crtc, struct cmdq_pkt *cmdq_handle);
 
 
 /* -------------------- oplus api nodes ------------------------------------------------ */

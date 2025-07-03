@@ -68,6 +68,9 @@ static bool read_cmos_eeprom_p8(struct subdrv_ctx *ctx, kal_uint16 addr,
 static int brzbmain_get_otp_qcom_pdaf_data(struct subdrv_ctx *ctx, u8 *para, u32 *len);
 
 static int brzbmain_get_otp_qcom_pdaf_offset_data(struct subdrv_ctx *ctx, u8 *para, u32 *len);
+static int brzbmain_streaming_suspend(struct subdrv_ctx *ctx, u8 *para, u32 *len);
+static int brzbmain_streaming_resume(struct subdrv_ctx *ctx, u8 *para, u32 *len);
+
 /* STRUCT */
 
 static struct eeprom_map_info brzbmain_eeprom_info[] = {
@@ -97,6 +100,8 @@ static struct subdrv_feature_control feature_control_list[] = {
 	{SENSOR_FEATURE_SET_AWB_GAIN, brzbmain_set_awb_gain},
 	{SENSOR_FEATURE_GET_OTP_QCOM_PDAF_DATA, brzbmain_get_otp_qcom_pdaf_data},
 	{SENSOR_FEATURE_GET_OTP_QCOM_PDAF_OFFSET_DATA, brzbmain_get_otp_qcom_pdaf_offset_data},
+	{SENSOR_FEATURE_SET_STREAMING_SUSPEND, brzbmain_streaming_suspend},
+	{SENSOR_FEATURE_SET_STREAMING_RESUME, brzbmain_streaming_resume},
 };
 
 static u32 brzbmain_dcg_ratio_table_ratio4[] = {4000};
@@ -1473,13 +1478,14 @@ static struct subdrv_mode_struct mode_struct[] = {
 		},
 		.pdaf_cap = TRUE,
 		.imgsensor_pd_info = &imgsensor_pd_info_full,
-		.ae_binning_ratio = 1428,
+		.ae_binning_ratio = 1000,
 		.fine_integ_line = -590,
 		.delay_frame = 3,
 		.csi_param = {
 			.cphy_settle = 58,
 		},
 		.dpc_enabled = true,
+		.multi_exposure_ana_gain_range[IMGSENSOR_EXPOSURE_LE].max = BASEGAIN * 16,
 		.ana_gain_max = BASEGAIN * 16,
                 .sensor_output_dataformat = SENSOR_OUTPUT_FORMAT_RAW_4CELL_B,
 	},
@@ -1524,7 +1530,7 @@ static struct subdrv_mode_struct mode_struct[] = {
 		},
 		.pdaf_cap = TRUE,
 		.imgsensor_pd_info = &imgsensor_pd_info_full,
-		.ae_binning_ratio = 1,
+		.ae_binning_ratio = 1000,
 		.fine_integ_line = 0,
 		.delay_frame = 2,
 		.csi_param = {0},
@@ -2577,7 +2583,9 @@ static int brzbmain_set_test_pattern(struct subdrv_ctx *ctx, u8 *para, u32 *len)
 	/* 1:Solid Color 2:Color Bar 5:Black */
 		switch (mode) {
 		case 5:
-			subdrv_i2c_wr_u8(ctx, 0x0601, 0x01);
+			subdrv_i2c_wr_u8(ctx, 0x020E, 0x00);
+			subdrv_i2c_wr_u8(ctx, 0x0218, 0x00);
+			subdrv_i2c_wr_u8(ctx, 0x3015, 0x00);
 			break;
 		default:
 			subdrv_i2c_wr_u8(ctx, 0x0601, mode);
@@ -2585,9 +2593,49 @@ static int brzbmain_set_test_pattern(struct subdrv_ctx *ctx, u8 *para, u32 *len)
 		}
 	} else if (ctx->test_pattern) {
 		subdrv_i2c_wr_u8(ctx, 0x0601, 0x00); /*No pattern*/
+		subdrv_i2c_wr_u8(ctx, 0x020E, 0x01);
+		subdrv_i2c_wr_u8(ctx, 0x0218, 0x01);
+		subdrv_i2c_wr_u8(ctx, 0x3015, 0x40);
 	}
 	ctx->test_pattern = mode;
 	return 0;
+}
+
+static void streaming_ctrl(struct subdrv_ctx *ctx, bool enable)
+{
+	check_current_scenario_id_bound(ctx);
+	if (ctx->s_ctx.mode[ctx->current_scenario_id].aov_mode) {
+		DRV_LOG(ctx, "AOV mode set stream in SCP side! (sid:%u)\n",
+			ctx->current_scenario_id);
+		return;
+	}
+	if (enable) {
+		subdrv_i2c_wr_u8(ctx, ctx->s_ctx.reg_addr_stream, 0x01);
+
+	} else {
+		subdrv_i2c_wr_u8(ctx, ctx->s_ctx.reg_addr_stream, 0x00);
+		subdrv_i2c_wr_u8(ctx, 0x38D0, 0x00);
+		subdrv_i2c_wr_u8(ctx, 0x38D1, 0x00);
+		subdrv_i2c_wr_u8(ctx, 0x38D2, 0x00);
+		subdrv_i2c_wr_u8(ctx, 0x38D3, 0x00);
+	}
+	mdelay(10);
+	ctx->is_streaming = enable;
+	DRV_LOG(ctx, "X! enable:%u\n", enable);
+}
+
+static int brzbmain_streaming_resume(struct subdrv_ctx *ctx, u8 *para, u32 *len)
+{
+		DRV_LOG(ctx, "streaming control para:%d\n", *para);
+		streaming_ctrl(ctx, true);
+		return 0;
+}
+
+static int brzbmain_streaming_suspend(struct subdrv_ctx *ctx, u8 *para, u32 *len)
+{
+		DRV_LOG(ctx, "streaming control para:%d\n", *para);
+		streaming_ctrl(ctx, false);
+		return 0;
 }
 
 static int init_ctx(struct subdrv_ctx *ctx,	struct i2c_client *i2c_client, u8 i2c_write_id)

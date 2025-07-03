@@ -149,7 +149,6 @@ enum dsi_cmd_id {
 	DSI_CMD_MIPI_ERR_CHECK_EXIT,
 	DSI_CMD_CRC_CHECK_ENTER,
 	DSI_CMD_CRC_CHECK_EXIT,
-	DSI_CMD_AOD_OFF_INSERT_BLACK,
 	/* Add the new element above this */
 	DSI_CMD_ID_MAX,
 };

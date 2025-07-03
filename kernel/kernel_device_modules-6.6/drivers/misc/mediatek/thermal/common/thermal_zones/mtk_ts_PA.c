@@ -91,7 +91,7 @@ static int g_rap_pull_up_r = PA_4G_RAP_PULL_UP_R;
 static int g_tap_over_critical_low = PA_4G_TAP_OVER_CRITICAL_LOW;
 static int g_rap_pull_up_voltage = PA_4G_RAP_PULL_UP_VOLTAGE;
 static int g_rap_adc_channel = PA_4G_RAP_ADC_CHANNEL;
-
+extern unsigned int is_project(int project);
 static int g_PA_4G_temperature_r;
 /* struct PA_4G_TempERATURE PA_4G_Temperature_Table[] = {0}; */
 #define TEMPERATURE_TBL_SIZE 121
@@ -353,14 +353,19 @@ static __s32  mtk_ts_PA_4G_volt_to_temp(__u32 dwVolt)
 static int get_hw_PA_4G_temp(void)
 {
 	int val = 0;
-	int output;
+	int ret = 0, output;
 
 	if (!thermistor_ch1_1) {
 		mtkts_PA_4G_dprintk("thermistor_ch1_1 NULL\n");
 		return -1;
 	}
-	//ret = iio_read_channel_processed(thermistor_ch1_1, &val);
-	val = get_pa_ntc_volt();
+
+	if (is_project(24713) || is_project(24714) || is_project(24715) || is_project(24728)|| is_project(24700) || is_project(24701) || is_project(24702) || is_project(24709)) {
+		ret = iio_read_channel_processed(thermistor_ch1_1, &val);
+	}
+	else {
+		val = get_pa_ntc_volt();
+	}
 	mtkts_PA_4G_dprintk("%s val=%d\n", __func__, val);
 
 	if (val < 0) {

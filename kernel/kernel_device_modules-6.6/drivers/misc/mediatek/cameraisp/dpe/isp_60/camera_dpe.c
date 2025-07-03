@@ -1412,13 +1412,8 @@ int DPE_Config_DVS(struct DPE_Config *pDpeConfig,
 	}
 
 	if ((occWidth % 16 != 0)) {
-		#ifdef CONFIG_MACH_CAMERA_MT6833
-                LOG_ERR("occ width is not 16 byte align w(%d)\n", occWidth);
+		LOG_ERR("occ width is not 16 byte align w(%d)\n", occWidth);
 		// return -1;
-		#else
-                LOG_ERR("occ width is not 16 byte align w(%d)\n", occWidth);
-		return -1;
-		#endif
 	}
 	if (L_engStartX < R_engStartX) {
 		LOG_ERR("L_engStartX(%d) < R_engStartX(%d)\n",

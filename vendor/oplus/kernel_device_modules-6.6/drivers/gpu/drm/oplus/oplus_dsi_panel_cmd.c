@@ -118,7 +118,6 @@ const char *dsi_cmd_map[DSI_CMD_ID_MAX] = {
 	"oplus,dsi-panel-mipi-err-check-exit-command",
 	"oplus,dsi-panel-crc-check-enter-command",
 	"oplus,dsi-panel-crc-check-exit-command",
-	"oplus,dsi-panel-aod-off-insert-black-command",
 };
 EXPORT_SYMBOL(dsi_cmd_map);
 
@@ -206,7 +205,6 @@ const char *dsi_cmd_state_map[DSI_CMD_ID_MAX] = {
 	"oplus,dsi-panel-mipi-err-check-exit-command-state",
 	"oplus,dsi-panel-crc-check-enter-command-state",
 	"oplus,dsi-panel-crc-check-exit-command-state",
-	"oplus,dsi-panel-aod-off-insert-black-command-state",
 };
 EXPORT_SYMBOL(dsi_cmd_state_map);
 
@@ -547,7 +545,11 @@ int oplus_dsi_panel_send_cmd(void *dsi, enum dsi_cmd_id cmd_set_id,
 		/* DCS delay */
 		if (table[i].post_wait_ms) {
 			if (handle && (cmd_state != DSI_CMD_SET_STATE_LP)) {
+#ifdef OPLUS_DISPLAY_PLATFORM_COMMON_BUG /* Bug-8383810 */
+				cmdq_pkt_sleep(handle, CMDQ_US_TO_TICK(table[i].post_wait_ms * 1000), CMDQ_GPR_R15);
+#else
 				cmdq_pkt_sleep(handle, CMDQ_US_TO_TICK(table[i].post_wait_ms * 1000), CMDQ_GPR_R14);
+#endif /* OPLUS_DISPLAY_PLATFORM_COMMON_BUG */
 			} else {
 				usleep_range(table[i].post_wait_ms * 1000, table[i].post_wait_ms * 1000 + 100);
 			}

@@ -905,7 +905,11 @@ static int oplus_ofp_cmdq_pkt_wait(struct mtk_drm_crtc *mtk_crtc, struct cmdq_pk
 
 		if (delay_us > 0) {
 			OFP_DEBUG("start to sleep %d us", delay_us);
+#ifdef OPLUS_DISPLAY_PLATFORM_COMMON_BUG /* Bug-8383810 */
+			cmdq_pkt_sleep(cmdq_handle, CMDQ_US_TO_TICK(delay_us), CMDQ_GPR_R15);
+#else
 			cmdq_pkt_sleep(cmdq_handle, CMDQ_US_TO_TICK(delay_us), CMDQ_GPR_R14);
+#endif /* OPLUS_DISPLAY_PLATFORM_COMMON_BUG */
 		}
 	} else {
 		while (wait_te_count) {
@@ -1023,7 +1027,11 @@ static int oplus_ofp_hbm_wait_handle(struct drm_crtc *crtc, struct cmdq_pkt *cmd
 					cmdq_handle2 = cmdq_pkt_create(mtk_crtc->gce_obj.client[CLIENT_CFG]);
 					cmdq_pkt_wait_no_clear(cmdq_handle2, mtk_crtc->gce_obj.event[EVENT_STREAM_EOF]);
 					/* delay one frame */
+#ifdef OPLUS_DISPLAY_PLATFORM_COMMON_BUG /* Bug-8383810 */
+					cmdq_pkt_sleep(cmdq_handle2, CMDQ_US_TO_TICK(us_per_frame), CMDQ_GPR_R15);
+#else
 					cmdq_pkt_sleep(cmdq_handle2, CMDQ_US_TO_TICK(us_per_frame), CMDQ_GPR_R14);
+#endif /* OPLUS_DISPLAY_PLATFORM_COMMON_BUG */
 					cmdq_pkt_flush(cmdq_handle2);
 					cmdq_pkt_destroy(cmdq_handle2);
 					OPLUS_OFP_TRACE_END("cmdq_handle2");
@@ -1051,7 +1059,11 @@ static int oplus_ofp_hbm_wait_handle(struct drm_crtc *crtc, struct cmdq_pkt *cmd
 				cmdq_handle2 = cmdq_pkt_create(mtk_crtc->gce_obj.client[CLIENT_CFG]);
 				cmdq_pkt_wait_no_clear(cmdq_handle2, mtk_crtc->gce_obj.event[EVENT_STREAM_EOF]);
 				/* delay some time to wait for data */
+#ifdef OPLUS_DISPLAY_PLATFORM_COMMON_BUG /* Bug-8383810 */
+				cmdq_pkt_sleep(cmdq_handle2, CMDQ_US_TO_TICK(delay_us), CMDQ_GPR_R15);
+#else
 				cmdq_pkt_sleep(cmdq_handle2, CMDQ_US_TO_TICK(delay_us), CMDQ_GPR_R14);
+#endif /* OPLUS_DISPLAY_PLATFORM_COMMON_BUG */
 				cmdq_pkt_flush(cmdq_handle2);
 				cmdq_pkt_destroy(cmdq_handle2);
 				OPLUS_OFP_TRACE_END("cmdq_handle2");
@@ -1709,19 +1721,6 @@ int oplus_ofp_set_aod_light_mode_after_doze_enable(void *mtk_panel_ext, void *mt
 }
 
 /* aod off cmd cmdq set */
-bool oplus_ofp_get_aod_unlocking(void)
-{
-	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params();
-
-	if (!p_oplus_ofp_params) {
-		OFP_ERR("Invalid params\n");
-		return 0;
-	}
-
-	return p_oplus_ofp_params->aod_unlocking;
-}
-EXPORT_SYMBOL(oplus_ofp_get_aod_unlocking);
-
 int oplus_ofp_aod_off_set_cmdq(struct drm_crtc *crtc)
 {
 	bool is_frame_mode;
@@ -1823,7 +1822,6 @@ int oplus_ofp_aod_off_set_cmdq(struct drm_crtc *crtc)
 
 	OPLUS_OFP_TRACE_BEGIN("DSI_SET_DOZE");
 	oplus_ofp_set_aod_state(false);
-	oplus_ofp_aod_unlocking_update();
 	if (output_comp->funcs && output_comp->funcs->io_cmd)
 		output_comp->funcs->io_cmd(output_comp,
 			cmdq_handle, DSI_SET_DOZE, &doze_en);

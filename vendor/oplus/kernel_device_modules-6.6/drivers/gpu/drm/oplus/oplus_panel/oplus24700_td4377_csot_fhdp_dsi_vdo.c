@@ -49,7 +49,7 @@
 #if defined(CONFIG_RT4831A_I2C)
 #include "../../../misc/mediatek/gate_ic/gate_i2c.h"
 #endif
-
+#include "../oplus_display_onscreenfingerprint.h"
 //#include "ktz8866.h"
 #define CHANGE_FPS_EN 1
 
@@ -1279,6 +1279,7 @@ static int lcm_probe(struct mipi_dsi_device *dsi)
 
 	/* wanhang */
 	register_device_proc("lcd", "td4377", "csot");
+	oplus_ofp_init(dev->of_node);
 	pr_info("%s- lcm,td4377_csot,vdo,90hz\n", __func__);
 
 	return ret;

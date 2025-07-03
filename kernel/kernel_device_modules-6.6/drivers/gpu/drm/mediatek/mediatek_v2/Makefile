@@ -17,6 +17,11 @@ ccflags-y += -DOPLUS_FEATURE_DISPLAY_APOLLO
 ccflags-y += -DOPLUS_TRACKPOINT_REPORT
 #endif /* OPLUS_FEATURE_DISPLAY */
 
+$(info build mediatek_drm.ko, CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG=$(CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG))
+ifneq ($(filter $(CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG), y m),)
+ccflags-y += -DOPLUS_DISPLAY_PLATFORM_COMMON_BUG
+endif # filter CONFIG_OPLUS_DISPLAY_PLATFORM_COMMON_BUG end
+
 CFLAGS_mtk_layering_rule_base.o := -I$(DEVICE_MODULES_PATH)/drivers/gpu/drm/mediatek/mediatek_v2
 
 mediatek-drm-y := mtk_drm_drv.o \

@@ -90,7 +90,7 @@ static int g_rap_pull_up_r = AP_RAP_PULL_UP_R;
 static int g_tap_over_critical_low = AP_TAP_OVER_CRITICAL_LOW;
 static int g_rap_pull_up_voltage = AP_RAP_PULL_UP_VOLTAGE;
 static int g_rap_adc_channel = AP_RAP_ADC_CHANNEL;
-
+extern unsigned int is_project(int project);
 static int g_AP_temperature_r;
 /* struct AP_TempERATURE AP_Temperature_Table[] = {0}; */
 #define TEMPERATURE_TBL_SIZE 121
@@ -352,14 +352,19 @@ static __s32  mtk_ts_AP_volt_to_temp(__u32 dwVolt)
 static int get_hw_AP_temp(void)
 {
 	int val = 0;
-	int output;
+	int ret = 0, output;
 
 	if (!thermistor_ch0_1) {
 		mtkts_AP_dprintk("thermistor_ch0_1 NULL\n");
 		return -1;
 	}
-	//ret = iio_read_channel_processed(thermistor_ch0_1, &val);
-	val = get_bb_ntc_volt();
+
+	if (is_project(24713) || is_project(24714) || is_project(24715) || is_project(24728) || is_project(24700) || is_project(24701) || is_project(24702) || is_project(24709)) {
+		ret = iio_read_channel_processed(thermistor_ch0_1, &val);
+	}
+	else {
+		val = get_bb_ntc_volt();
+	}
 	mtkts_AP_dprintk("%s val=%d\n", __func__, val);
 
 	if (val < 0) {

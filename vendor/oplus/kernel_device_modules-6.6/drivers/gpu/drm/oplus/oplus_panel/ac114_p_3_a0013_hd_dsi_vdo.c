@@ -458,7 +458,7 @@ static struct mtk_panel_params ext_params = {
 	//.panel_bpp = 24,
 	.dyn = {
 		.switch_en = 1,
-		.data_rate = 1086,
+		.data_rate = 912,
 	},
 	.lcm_esd_check_table[0] = {
 		.cmd = 0x0a,
@@ -479,7 +479,7 @@ static struct mtk_panel_params ext_params_90hz = {
 	//.panel_bpp = 24,
 	.dyn = {
 		.switch_en = 1,
-		.data_rate = 1086,
+		.data_rate = 912,
 	},
 	.lcm_esd_check_table[0] = {
 		.cmd = 0x0a,

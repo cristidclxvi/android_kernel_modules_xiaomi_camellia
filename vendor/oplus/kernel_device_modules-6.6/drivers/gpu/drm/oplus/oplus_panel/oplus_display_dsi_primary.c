@@ -745,6 +745,7 @@ static int oplus_ofp_set_lhbm_pressed_icon(struct drm_panel *panel, void *dsi_dr
 	enum dsi_cmd_id cmd_set_id = DSI_CMD_ID_MAX;
 	struct dsi_cmd_table *cmd_table = NULL;
 	struct dsi_panel_lcm *ctx = oplus_mtkDsi_to_panel(dsi_drv);
+	struct mtk_dsi *mtk_dsi = dsi_drv;
 
 	OFP_DEBUG("start\n");
 
@@ -818,11 +819,16 @@ static int oplus_ofp_set_lhbm_pressed_icon(struct drm_panel *panel, void *dsi_dr
 	} else {
 		cmd_set_id = DSI_CMD_LHBM_PRESSED_ICON_OFF;
 	}
-
-	oplus_dsi_panel_send_cmd(dsi_drv, cmd_set_id, handle, DSI_CMD_FUNC_DEFAULT);
+	if ((mtk_dsi->mode_flags & MIPI_DSI_MODE_VIDEO) && !lhbm_pressed_icon_on) {
+		oplus_dsi_panel_send_cmd(dsi_drv, cmd_set_id, handle, DSI_CMD_FUNC_GCE2);
+	} else
+		oplus_dsi_panel_send_cmd(dsi_drv, cmd_set_id, handle, DSI_CMD_FUNC_DEFAULT);
 
 	if (!lhbm_pressed_icon_on) {
-		oplus_panel_set_backlight_cmdq(dsi_drv, cb, handle, oplus_display_brightness);
+		if (mtk_dsi->mode_flags & MIPI_DSI_MODE_VIDEO)
+			oplus_panel_set_backlight_cmdq(dsi_drv, NULL, handle, oplus_display_brightness);
+		else
+			oplus_panel_set_backlight_cmdq(dsi_drv, cb, handle, oplus_display_brightness);
 	} else {
 		if (oplus_display_brightness > 0x0DBB) {
 			OFP_INFO("set backlight level to 0x0DBB after pressed icon on\n");
@@ -867,13 +873,6 @@ static int panel_doze_disable(struct drm_panel *panel, void *dsi, dcs_write_gce_
 		} else {
 			oplus_dsi_panel_send_cmd(dsi, DSI_CMD_AOD_OFF_COMPENSATION, handle, DSI_CMD_FUNC_GCE2);
 		}
-	} else if (oplus_ofp_get_aod_unlocking()) {
-		if (handle) {
-			oplus_dsi_panel_send_cmd(dsi, DSI_CMD_AOD_OFF_INSERT_BLACK, handle, DSI_CMD_FUNC_DEFAULT);
-		} else {
-			oplus_dsi_panel_send_cmd(dsi, DSI_CMD_AOD_OFF_INSERT_BLACK, handle, DSI_CMD_FUNC_GCE2);
-		}
-		OFP_INFO("send aod off cmd whith insert back frame\n");
 	} else {
 		if (handle) {
 			oplus_dsi_panel_send_cmd(dsi, DSI_CMD_SET_NOLP, handle, DSI_CMD_FUNC_DEFAULT);
@@ -1365,6 +1364,30 @@ static int mode_switch_hs(struct drm_panel *panel, struct drm_connector *connect
 	return ret;
 }
 
+static int mode_switch_update_for_vdo(struct drm_connector *connector, unsigned int cur_mode, unsigned int dst_mode)
+{
+	int ret = 0;
+	int m_vrefresh = 0;
+	int src_vrefresh = 0;
+	struct drm_display_mode *m = get_mode_by_id(connector, dst_mode);
+	struct drm_display_mode *src_m = get_mode_by_id(connector, cur_mode);
+
+	OPLUS_DSI_INFO("cur_mode=%d, dst_mode=%d\n", cur_mode, dst_mode);
+	if (cur_mode == dst_mode)
+		return ret;
+
+	g_last_mode_idx = cur_mode;
+	dsi_panel_mode_id = get_mode_enum(m);
+	m_vrefresh = drm_mode_vrefresh(m);
+	src_vrefresh = drm_mode_vrefresh(src_m);
+
+	OPLUS_DSI_INFO("update dsi_panel_mode_id:%d->%d, hdisplay:%d->%d, hskew:%d->%d, vrefresh:%d->%d\n",
+			get_mode_enum(src_m), dsi_panel_mode_id, src_m->hdisplay, m->hdisplay,
+			src_m->hskew, m->hskew, src_vrefresh, m_vrefresh);
+
+	return ret;
+}
+
 static int oplus_display_panel_set_hbm_max(void *dsi, dcs_write_gce_pack cb, void *handle, unsigned int en)
 {
 	OPLUS_DSI_INFO("en=%d\n", en);
@@ -1555,6 +1578,7 @@ static struct mtk_panel_funcs ext_funcs = {
 #endif /* OPLUS_FEATURE_DISPLAY_HPWM */
 #ifdef OPLUS_FEATURE_DISPLAY
 	.lcm_set_hbm_max = oplus_display_panel_set_hbm_max,
+	.mode_switch_update_for_vdo = mode_switch_update_for_vdo,
 	.set_seed = panel_set_seed,
 	.oplus_set_backlight_cmdq = oplus_panel_set_backlight_cmdq,
 #endif

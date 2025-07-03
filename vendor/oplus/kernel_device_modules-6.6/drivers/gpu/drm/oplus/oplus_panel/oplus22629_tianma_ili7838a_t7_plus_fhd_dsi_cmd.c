@@ -60,7 +60,7 @@ static unsigned int esd_brightness = 1023;
 static u32 flag_hbm = 0;
 extern unsigned int oplus_display_brightness;
 extern unsigned int oplus_display_backlight;
-extern unsigned long oplus_max_normal_brightness;
+extern unsigned int oplus_max_normal_brightness;
 static bool aod_state = false;
 //extern bool aod_flag;
 //extern void disp_aal_set_dre_en(int enable);
@@ -662,8 +662,9 @@ static struct mtk_panel_params ext_params = {
 	.oplus_custom_hdr_red = 989,
 	.oplus_custom_hdr_green = 1024,
 	.oplus_custom_hdr_blue = 810,
-	.oplus_panel_use_rgb_gain = true,
 */
+	.oplus_panel_use_rgb_gain = true,
+
 	.dyn_fps = {
 		.switch_en = 1, .vact_timing_fps = 60,
 	},
@@ -773,8 +774,9 @@ static struct mtk_panel_params ext_params_90hz = {
         .oplus_custom_hdr_red = 989,
         .oplus_custom_hdr_green = 1024,
         .oplus_custom_hdr_blue = 810,
-        .oplus_panel_use_rgb_gain = true,
 */
+	.oplus_panel_use_rgb_gain = true,
+
         .dyn_fps = {
                 .switch_en = 1, .vact_timing_fps = 90,
         },
@@ -884,8 +886,9 @@ static struct mtk_panel_params ext_params_120hz = {
         .oplus_custom_hdr_red = 989,
         .oplus_custom_hdr_green = 1024,
         .oplus_custom_hdr_blue = 820,
-	.oplus_panel_use_rgb_gain = true,
 */
+	.oplus_panel_use_rgb_gain = true,
+
         .dyn_fps = {
                 .switch_en = 1, .vact_timing_fps = 120,
         },
