@@ -9,6 +9,13 @@
 
 #include "imgsensor_hw.h"
 
+/* For oplus_update_tg_map */
+struct cgroup_subsys_state;
+
+/* For soc_codec_conf_sia91xx */
+struct platform_device;
+struct snd_soc_card;
+
 /* OPLUS device-info module hooks - return release-mode defaults. */
 unsigned int get_eng_version(void) { return 0; }
 EXPORT_SYMBOL_GPL(get_eng_version);
@@ -69,5 +76,17 @@ EXPORT_SYMBOL_GPL(get_audio);
 
 unsigned int get_dtsiNo(void)          { return 0; }
 EXPORT_SYMBOL_GPL(get_dtsiNo);
+
+
+/* OPLUS scheduler task-group hook - provider kernel/oplus_cpu disabled. */
+void oplus_update_tg_map(struct cgroup_subsys_state *css) { (void)css; }
+EXPORT_SYMBOL_GPL(oplus_update_tg_map);
+
+/* SI-PA audio smart-amp - not on camellia, return 0 (no codec added). */
+int soc_codec_conf_sia91xx(struct platform_device *pdev, struct snd_soc_card *card)
+{
+	(void)pdev; (void)card; return 0;
+}
+EXPORT_SYMBOL_GPL(soc_codec_conf_sia91xx);
 
 MODULE_LICENSE("GPL v2");
