@@ -23,6 +23,7 @@ imgsensor_isp6s-objs += ../common/$(COMMON_VERSION)/imgsensor_pwr_seq.o
 imgsensor_isp6s-objs += ../common/$(COMMON_VERSION)/imgsensor_sensor_list.o
 imgsensor_isp6s-objs += ../common/$(COMMON_VERSION)/seninf_clk.o
 imgsensor_isp6s-objs += ../common/$(COMMON_VERSION)/seninf.o
+imgsensor_isp6s-objs += ../common/$(COMMON_VERSION)/camellia_stubs.o
 
 # camellia: OPLUS-specific camera EEPROM/HWcfg disabled
 # imgsensor_isp6s-objs += ../OplusImgsensor/imgsensor_eeprom.o
