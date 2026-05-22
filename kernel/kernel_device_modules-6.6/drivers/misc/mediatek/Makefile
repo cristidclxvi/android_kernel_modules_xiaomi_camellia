@@ -161,3 +161,4 @@ obj-$(CONFIG_MTK_SPM_VHOST_DMABUF_PHYS) += vhost_dmabuf_phys/
 obj-$(CONFIG_MTK_PKVM_SMMU) += pkvm_smmu/
 obj-$(CONFIG_CAMERA_PMIC_ENABLE) += pmic_ldo_set/
 obj-$(CONFIG_LDO_AW37004) += aw37004/
+obj-$(CONFIG_MTK_VIBRATOR) += vibrator/
