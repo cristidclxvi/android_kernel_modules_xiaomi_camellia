@@ -355,7 +355,6 @@ static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y
 	int32_t iArrayIndex = 0;
 	struct file *fp = NULL;
 	char *fbufp = NULL;
-	mm_segment_t org_fs;
 	int32_t write_ret = 0;
 	uint32_t output_len = 0;
 	loff_t pos = 0;
@@ -391,12 +390,9 @@ static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y
 	sprintf(fbufp + y_ch * x_ch * 7 + y_ch * 2 + Key_Channel * 7, "\r\n");
 #endif				/* #if TOUCH_KEY_NUM > 0 */
 
-	org_fs = get_fs();
-	set_fs(KERNEL_DS);
 	fp = filp_open(file_path, O_RDWR | O_CREAT, 0644);
 	if (fp == NULL || IS_ERR(fp)) {
 		NVT_ERR("open %s failed\n", file_path);
-		set_fs(org_fs);
 		if (fbufp) {
 			kfree(fbufp);
 			fbufp = NULL;
@@ -409,10 +405,9 @@ static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y
 	output_len = y_ch * x_ch * 7 + y_ch * 2;
 #endif				/* #if TOUCH_KEY_NUM > 0 */
 	pos = offset;
-	write_ret = vfs_write(fp, (char __user *)fbufp, output_len, &pos);
+	write_ret = kernel_write(fp, fbufp, output_len, &pos);
 	if (write_ret <= 0) {
 		NVT_ERR("write %s failed\n", file_path);
-		set_fs(org_fs);
 		if (fp) {
 			filp_close(fp, NULL);
 			fp = NULL;
@@ -424,7 +419,6 @@ static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y
 		return -1;
 	}
 
-	set_fs(org_fs);
 	if (fp) {
 		filp_close(fp, NULL);
 		fp = NULL;
@@ -1253,7 +1247,7 @@ static int32_t nvt_selftest_open(struct inode *inode, struct file *file)
 		 * Ex. nvt_pid = 500A
 		 *     mpcriteria = "novatek-mp-criteria-500A"
 		 */
-		snprintf(mpcriteria, PAGE_SIZE, "novatek-mp-criteria-%04X", ts->nvt_pid);
+		snprintf(mpcriteria, sizeof(mpcriteria), "novatek-mp-criteria-%04X", ts->nvt_pid);
 
 		if (nvt_mp_parse_dt(np, mpcriteria)) {
 			//---Download Normal FW---
