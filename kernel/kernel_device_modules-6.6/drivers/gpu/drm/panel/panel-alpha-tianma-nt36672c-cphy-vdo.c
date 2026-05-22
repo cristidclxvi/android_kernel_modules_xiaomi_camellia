@@ -13,7 +13,9 @@
 
 #include <linux/backlight.h>
 #include <linux/delay.h>
-#include <drm/drmP.h>
+#include <drm/drm_modes.h>
+#include <drm/drm_connector.h>
+#include <drm/drm_device.h>
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_panel.h>
 
@@ -31,7 +33,7 @@
 #if defined(CONFIG_MTK_PANEL_EXT)
 #include "../mediatek/mtk_panel_ext.h"
 #include "../mediatek/mtk_log.h"
-#include "../mediatek/mtk_drm_graphics_base.h"
+#include "../mediatek/mediatek_v2/mtk_drm_graphics_base.h"
 #endif
 /* enable this to check panel self -bist pattern */
 /* #define PANEL_BIST_PATTERN */
