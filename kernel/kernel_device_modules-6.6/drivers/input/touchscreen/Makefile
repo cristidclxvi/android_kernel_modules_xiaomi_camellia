@@ -18,3 +18,6 @@ obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_CORE_96789) += synaptics_dsx_96789/
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_CORE_96851) += synaptics_dsx_96851/
 obj-$(CONFIG_TOUCHSCREEN_FOCALTECH_TOUCH) += focaltech_touch/
 obj-$(CONFIG_TOUCHSCREEN_NT36xxx_HOSTDL_SPI) += NT36532/
+
+# camellia LOS 23: NVT NT36672C SPI touch for camellia (Xiaomi Redmi Note 10 5G)
+obj-y += NT36672C_SPI/
