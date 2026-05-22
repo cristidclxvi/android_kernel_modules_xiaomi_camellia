@@ -16,20 +16,6 @@ struct CAM_CAL_SENSOR_INFO {
 	u32 sensor_id;
 };
 
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-/* cengshang@vanyol.com add for otp porting in 206AC */
-struct stCAM_CAL_DATAINFO_STRUCT {
-	u32 sensorID;
-	u32 deviceID; /* MAIN = 0x01, SUB  = 0x02, MAIN_2 = 0x04,SUB2 = 0x08, MAIN3 =0x10*/
-	u32 dataLength;
-	u32 sensorVendorid;
-	u8  vendorPos;
-	u8  sensorPos;
-	u8  vendorByte;
-	u8  *dataBuffer;
-};
-#endif
-
 struct stCAM_CAL_INFO_STRUCT {
 	u32 u4Offset;
 	u32 u4Length;

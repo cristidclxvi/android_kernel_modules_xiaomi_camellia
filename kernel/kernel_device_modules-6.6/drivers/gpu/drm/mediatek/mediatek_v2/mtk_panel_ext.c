@@ -29,19 +29,6 @@ void mtk_panel_init(struct mtk_panel_ctx *ctx)
 {
 	INIT_LIST_HEAD(&ctx->list);
 }
-#ifdef OPLUS_FEATURE_DISPLAY
-void mtk_panel_lock(void)
-{
-	mutex_lock(&panel_boot_lock);
-}
-EXPORT_SYMBOL(mtk_panel_lock);
-
-void mtk_panel_unlock(void)
-{
-	mutex_unlock(&panel_boot_lock);
-}
-EXPORT_SYMBOL(mtk_panel_unlock);
-#endif /* OPLUS_FEATURE_DISPLAY */
 void mtk_panel_add(struct mtk_panel_ctx *ctx)
 {
 	mutex_lock(&panel_ext_lock);

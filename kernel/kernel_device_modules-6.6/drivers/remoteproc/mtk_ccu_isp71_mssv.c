@@ -1181,61 +1181,6 @@ ccu_load_err:
 static int
 mtk_ccu_sanity_check(struct rproc *rproc, const struct firmware *fw)
 {
-#if !defined(SECURE_CCU) && (0)
-	struct mtk_ccu *ccu = rproc->priv;
-	const char *name = rproc->firmware;
-	struct elf32_hdr *ehdr;
-	char class;
-
-	if (!fw) {
-		dev_err(ccu->dev, "failed to load %s\n", name);
-		return -EINVAL;
-	}
-
-	if (fw->size < sizeof(struct elf32_hdr)) {
-		dev_err(ccu->dev, "Image is too small\n");
-		return -EINVAL;
-	}
-
-	ehdr = (struct elf32_hdr *)fw->data;
-
-	/* We only support ELF32 at this point */
-	class = ehdr->e_ident[EI_CLASS];
-	if (class != ELFCLASS32) {
-		dev_err(ccu->dev, "Unsupported class: %d\n", class);
-		return -EINVAL;
-	}
-
-	/* We assume the firmware has the same endianness as the host */
-# ifdef __LITTLE_ENDIAN
-	if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB) {
-# else /* BIG ENDIAN */
-	if (ehdr->e_ident[EI_DATA] != ELFDATA2MSB) {
-# endif
-		dev_err(ccu->dev, "Unsupported firmware endianness\n");
-		return -EINVAL;
-	}
-
-	if (fw->size < ehdr->e_shoff + sizeof(struct elf32_shdr)) {
-		dev_err(ccu->dev, "Image is too small\n");
-		return -EINVAL;
-	}
-
-	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG)) {
-		dev_err(ccu->dev, "Image is corrupted (bad magic)\n");
-		return -EINVAL;
-	}
-
-	if (ehdr->e_phnum == 0) {
-		dev_err(ccu->dev, "No loadable segments\n");
-		return -EINVAL;
-	}
-
-	if (ehdr->e_phoff > fw->size) {
-		dev_err(ccu->dev, "Firmware size is too small\n");
-		return -EINVAL;
-	}
-#endif
 
 	return 0;
 }
@@ -1515,13 +1460,6 @@ static int mtk_ccu_probe(struct platform_device *pdev)
 #endif
 	}
 
-#if IS_ENABLED(CONFIG_MTK_CCU_DEBUG) && (0)
-	/*register char dev for log ioctl*/
-	ret = mtk_ccu_reg_chardev(ccu);
-	if (ret)
-		dev_err(ccu->dev, "failed to regist char dev");
-#endif
-
 	ret = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(34));
 	if (ret) {
 		dev_err(ccu->dev, "CCU 34-bit DMA enable failed\n");
@@ -1561,9 +1499,6 @@ static int mtk_ccu_remove(struct platform_device *pdev)
 		|| (ccu->ccu_version == CCU_VER_ISP8L))
 		pm_runtime_disable(ccu->dev_cammainpwr);
 	pm_runtime_disable(ccu->dev);
-#if IS_ENABLED(CONFIG_MTK_CCU_DEBUG) && (0)
-	mtk_ccu_unreg_chardev(ccu);
-#endif
 	return 0;
 }
 

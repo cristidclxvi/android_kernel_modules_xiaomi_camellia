@@ -8,9 +8,7 @@
 #ifndef _LENS_LIST_H
 
 #define _LENS_LIST_H
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 
 extern void MAIN2AF_PowerDown(void);
 
@@ -78,42 +76,6 @@ extern int AK7371AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
 extern int AK7371AF_PowerDown(struct i2c_client *pstAF_I2Cclient,
 				int *pAF_Opened);
 extern int AK7371AF_GetFileName(unsigned char *pFileName);
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-extern int AK7314AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long AK7314AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int AK7314AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int AK7314AF_GetFileName(unsigned char *pFileName);
-extern int AK7375CAF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long AK7375CAF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int AK7375CAF_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int AK7375CAF_PowerDown(struct i2c_client *pstAF_I2Cclient,
-				int *pAF_Opened);
-extern int AK7375CAF_GetFileName(unsigned char *pFileName);
-extern int AK7375CAF_DoExtLdo(int enable);
-/*20201225 add for 20817 sensor af*/
-extern int AK7377AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long AK7377AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int AK7377AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int AK7377AF_PowerDown(struct i2c_client *pstAF_I2Cclient,
-				int *pAF_Opened);
-extern int AK7377AF_GetFileName(unsigned char *pFileName);
-extern int AK7377AF_DoExtLdo(int enable);
-extern int AK7314AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long AK7314AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int AK7314AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int AK7314AF_GetFileName(unsigned char *pFileName);
-
-extern int AK7375CAF_updatePIDparam(void);
-extern int AK7375CAF_checkPIDparam(void);
-#endif
 
 #define BU6424AF_SetI2Cclient BU6424AF_SetI2Cclient_Main
 #define BU6424AF_Ioctl BU6424AF_Ioctl_Main
@@ -125,61 +87,6 @@ extern long BU6424AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 			   unsigned long a_u4Param);
 extern int BU6424AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
 extern int BU6424AF_GetFileName(unsigned char *pFileName);
-
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#define BU64253AF_SetI2Cclient BU64253AF_SetI2Cclient_Main
-#define BBU64253AF_Ioctl BU64253AF_Ioctl_Main
-#define BBU64253AF_Release BU64253AF_Release_Main
-#define BU64253AF_GetFileName BU64253AF_GetFileName_Main
-extern int BU64253AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long BU64253AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int BU64253AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int BU64253AF_GetFileName(unsigned char *pFileName);
-
-#define DW9718TAF_ZHAOYUN_SetI2Cclient DW9718TAF_ZHAOYUN_SetI2Cclient_Main
-#define DW9718TAF_ZHAOYUN_Ioctl DW9718TAF_ZHAOYUN_Ioctl_Main
-#define DW9718TAF_ZHAOYUN_Release DW9718TAF_ZHAOYUN_Release_Main
-#define DW9718TAF_ZHAOYUN_GetFileName DW9718TAF_ZHAOYUN_GetFileName_Main
-extern int DW9718TAF_ZHAOYUN_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long DW9718TAF_ZHAOYUN_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int DW9718TAF_ZHAOYUN_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int DW9718TAF_ZHAOYUN_GetFileName(unsigned char *pFileName);
-
-#define GT9772AF_LIMU_IMX355_SetI2Cclient GT9772AF_LIMU_IMX355_SetI2Cclient_Main
-#define GT9772AF_LIMU_IMX355_Ioctl GT9772AF_LIMU_IMX355_Ioctl_Main
-#define GT9772AF_LIMU_IMX355_Release GT9772AF_LIMU_IMX355_Release_Main
-#define GT9772AF_LIMU_IMX355_GetFileName GT9772AF_LIMU_IMX355_GetFileName_Main
-extern int GT9772AF_LIMU_IMX355_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long GT9772AF_LIMU_IMX355_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int GT9772AF_LIMU_IMX355_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int GT9772AF_LIMU_IMX355_GetFileName(unsigned char *pFileName);
-#define DW9718TAF_LIMU_SetI2Cclient DW9718TAF_LIMU_SetI2Cclient_Main
-#define DW9718TAF_LIMU_Ioctl DW9718TAF_LIMU_Ioctl_Main
-#define DW9718TAF_LIMU_Release DW9718TAF_LIMU_Release_Main
-#define DW9718TAF_LIMU_GetFileName DW9718TAF_LIMU_GetFileName_Main
-extern int DW9718TAF_LIMU_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long DW9718TAF_LIMU_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int DW9718TAF_LIMU_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int DW9718TAF_LIMU_GetFileName(unsigned char *pFileName);
-#define FP5513AF_LIMU_SetI2Cclient FP5513AF_LIMU_SetI2Cclient_Main
-#define FP5513AF_LIMU_Ioctl FP5513AF_LIMU_Ioctl_Main
-#define FP5513AF_LIMU_Release FP5513AF_LIMU_Release_Main
-#define FP5513AF_LIMU_GetFileName FP5513AF_LIMU_GetFileName_Main
-extern int FP5513AF_LIMU_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
-				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
-extern long FP5513AF_LIMU_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
-			   unsigned long a_u4Param);
-extern int FP5513AF_LIMU_Release(struct inode *a_pstInode, struct file *a_pstFile);
-extern int FP5513AF_LIMU_GetFileName(unsigned char *pFileName);
-#endif
 
 #define FP5516AF_SetI2Cclient FP5516AF_SetI2Cclient_Main
 #define FP5516AF_Ioctl FP5516AF_Ioctl_Main

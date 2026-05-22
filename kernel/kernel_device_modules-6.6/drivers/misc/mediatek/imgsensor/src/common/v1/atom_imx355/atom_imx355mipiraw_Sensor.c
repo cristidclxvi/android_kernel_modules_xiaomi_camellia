@@ -30,15 +30,6 @@
 
 #define PFX "ATOM_IMX355_camera_sensor"
 #define LOG_INF(format, args...) pr_debug(PFX "[%s] " format, __func__, ##args)
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#define DEVICE_VERSION_IMX355	"imx355"
-static kal_uint32 streaming_control(kal_bool enable);
-extern unsigned char imx355_get_module_id(void);
-#define MODULE_ID_OFFSET 0x0000
-extern enum IMGSENSOR_RETURN Eeprom_DataInit(
-    enum IMGSENSOR_SENSOR_IDX sensor_idx,
-    kal_uint32 sensorID);
-#endif
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
 static struct imgsensor_info_struct imgsensor_info = {
@@ -1421,9 +1412,6 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 					| read_cmos_sensor_8(0x0017)) + 5;
 			if (*sensor_id == ATOM_IMX355_SENSOR_ID) {
 				*sensor_id = imgsensor_info.sensor_id;
-				#ifdef OPLUS_FEATURE_CAMERA_COMMON
-				Eeprom_DataInit(IMGSENSOR_SENSOR_IDX_MAIN, *sensor_id);
-				#endif
 				LOG_INF("i2c write id: 0x%x, sensor id: 0x%x\n", imgsensor.i2c_write_id, *sensor_id);
 				return ERROR_NONE;
 			}
@@ -2443,11 +2431,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 	case SENSOR_FEATURE_SET_NIGHTMODE:
 		 /* night_mode((BOOL) *feature_data); */
 		break;
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	case SENSOR_FEATURE_CHECK_MODULE_ID:
-		*feature_return_para_32 = imgsensor_info.module_id;
-		break;
-	#endif
 	case SENSOR_FEATURE_SET_GAIN:
 		set_gain((UINT16) *feature_data);
 		break;

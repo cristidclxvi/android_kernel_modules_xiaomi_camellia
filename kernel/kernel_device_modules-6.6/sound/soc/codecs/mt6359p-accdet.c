@@ -1907,9 +1907,7 @@ static void eint_work_callback(struct work_struct *work)
 		accdet->eint_sync_flag = false;
 		accdet->thing_in_flag = false;
 		mutex_unlock(&accdet->res_lock);
-#ifndef OPLUS_BUG_COMPATIBILITY
 		if (accdet_dts.moisture_detect_mode != 0x5)
-#endif
 			del_timer_sync(&micbias_timer);
 
 		/* disable accdet_sw_en=0
@@ -2241,24 +2239,8 @@ static int pmic_eint_queue_work(int eintID)
 #endif
 				}
 			}
-#ifdef OPLUS_BUG_COMPATIBILITY
-		if (accdet->cur_eint_state == EINT_PLUG_IN) {
-#if IS_ENABLED(CONFIG_SND_SOC_FSA)
-			pr_info("%s delayed work 50ms scheduled when plugging in\n", __func__);
-			schedule_delayed_work(&hp_detect_work, msecs_to_jiffies(50));
-#else
-			pr_info("%s delayed work 500ms scheduled when plugging in\n", __func__);
-			schedule_delayed_work(&hp_detect_work, msecs_to_jiffies(500));
-#endif
-		} else {
-			pr_info("%s no delayed work scheduled when plugging out\n", __func__);
-			cancel_delayed_work_sync(&hp_detect_work);
-			schedule_delayed_work(&hp_detect_work, 0);
-		}
-#else /* OPLUS_BUG_COMPATIBILITY */
 			ret = queue_work(accdet->eint_workqueue,
 					&accdet->eint_work);
-#endif /* OPLUS_BUG_COMPATIBILITY */
 		} else
 			pr_notice("%s invalid EINT ID!\n", __func__);
 	} else if (HAS_CAP(accdet->data->caps, ACCDET_PMIC_EINT1)) {
@@ -3135,13 +3117,8 @@ static void accdet_init_once(void)
 		accdet_write(RG_AUDACCDETMICBIAS0PULLLOW_ADDR,
 			reg | RG_ACCDET_MODE_ANA11_MODE2);
 		/* enable analog fast discharge */
-#ifndef OPLUS_BUG_COMPATIBILITY
 		accdet_update_bits(RG_ANALOGFDEN_ADDR,
 			RG_ANALOGFDEN_SFT, 0x3, 0x3);
-#else
-		accdet_update_bits(RG_ANALOGFDEN_ADDR,
-			RG_ANALOGFDEN_SFT, 0x3, 0x2);
-#endif
 	} else if (accdet_dts.mic_mode == HEADSET_MODE_6) {
 		/* DCC mode Low cost mode with internal bias,
 		 * bit8 = 1 to use internal bias
@@ -3263,12 +3240,9 @@ EXPORT_SYMBOL(accdet_modify_vref_volt);
 
 static void accdet_modify_vref_volt_self(void)
 {
-#ifndef OPLUS_BUG_COMPATIBILITY
 	u32 cur_AB, eintID;
-#endif
 
 	if (accdet_dts.moisture_detect_mode == 0x5) {
-#ifndef OPLUS_BUG_COMPATIBILITY
 		/* make sure seq is disable micbias then connect vref2 */
 
 		/* check EINT0 status, if plug out,
@@ -3304,7 +3278,6 @@ static void accdet_modify_vref_volt_self(void)
 				__func__, cur_AB, accdet->cable_type);
 			dis_micbias_done = true;
 		}
-#endif
 		/* disable comp1 delay window */
 		accdet_update_bit(RG_EINT0NOHYS_ADDR,
 			RG_EINT0NOHYS_SFT);

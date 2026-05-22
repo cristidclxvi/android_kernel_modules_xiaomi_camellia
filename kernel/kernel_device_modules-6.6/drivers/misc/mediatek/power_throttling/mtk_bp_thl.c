@@ -16,9 +16,7 @@
 #define BPCB_MAX_NUM 16
 #define MAX_VALUE 0x7FFF
 
-#ifndef OPLUS_FEATURE_CHG_BASIC
 #define OPLUS_FEATURE_CHG_BASIC
-#endif
 
 static struct task_struct *bp_notify_thread;
 static bool bp_notify_flag;
@@ -314,11 +312,7 @@ static void check_md_throttle(int soc)
 
 static void soc_handler(struct work_struct *work)
 {
-#ifndef OPLUS_FEATURE_CHG_BASIC
 	struct power_supply *psy;
-#else
-	struct power_supply *psy_mtk;
-#endif
 	union power_supply_propval val;
 	int ret, soc, temp, new_lv, soc_thd, temp_thd, soc_stage, temp_stage;
 	static int last_soc = MAX_VALUE, last_temp = MAX_VALUE;
@@ -334,7 +328,6 @@ static void soc_handler(struct work_struct *work)
 		return;
 	}
 
-#ifndef OPLUS_FEATURE_CHG_BASIC
 	psy =  bp_thl_data->psy;
 
 	if (strcmp(psy->desc->name, "battery") != 0)
@@ -351,34 +344,6 @@ static void soc_handler(struct work_struct *work)
 		pr_info("%s:%d soc:%d return\n", __func__, __LINE__, soc);
 		return;
 	}
-#else
-	psy_mtk = power_supply_get_by_name("battery");
-	if (!psy_mtk) {
-		pr_err("%s get psy_mtk failed!\n", __func__);
-		return;
-	}
-
-	ret = power_supply_get_property(psy_mtk, POWER_SUPPLY_PROP_CAPACITY, &val);
-	if (ret) {
-		pr_err("%s get soc failed!\n", __func__);
-		return;
-	}
-
-	soc = val.intval;
-	pr_info("%s:%d get soc is %d, ret = %d\n", __func__, __LINE__, soc, ret);
-
-
-	ret = power_supply_get_property(psy_mtk, POWER_SUPPLY_PROP_TEMP, &val);
-	if (ret) {
-		pr_err("%s get temp failed!\n", __func__);
-		return;
-	}
-
-	temp = val.intval / 10;
-
-	pr_info("%s:%d get temp is %d, ret = %d\n", __func__, __LINE__, temp, ret);
-
-#endif
 
 	if (soc != last_soc)
 		check_md_throttle(soc);

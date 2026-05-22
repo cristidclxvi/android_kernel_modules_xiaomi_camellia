@@ -1143,23 +1143,12 @@ static bool vow_service_SetSpeakerModel(unsigned long arg)
 	char *ptr8;
 #endif
 
-#ifndef OPLUS_ARCH_EXTENDS
 	I = vow_service_FindFreeSpeakerModel();
 	if (I == -1)
 		return false;
-#endif /* OPLUS_ARCH_EXTENDS */
 
 	if (vow_service_GetParameter(arg) != 0)
 		return false;
-#ifdef OPLUS_ARCH_EXTENDS
-	I = vow_service_SearchSpeakerModelWithKeyword(vowserv.vow_info_apuser[1]);
-	if (I < 0) {
-		I = vow_service_FindFreeSpeakerModel();
-		if (I == -1) {
-			return false;
-                }
-	}
-#endif
 
 #if IS_ENABLED(CONFIG_MTK_TINYSYS_SCP_SUPPORT)
 

@@ -19,7 +19,6 @@ int iReadRegI2C(u8 *a_pSendData, u16 a_sizeSendData,
 	if (imgsensor_i2c_get_device() == NULL)
 		return IMGSENSOR_RETURN_ERROR;
 
-	#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	return imgsensor_i2c_read(
 			imgsensor_i2c_get_device(),
 			a_pSendData,
@@ -28,16 +27,6 @@ int iReadRegI2C(u8 *a_pSendData, u16 a_sizeSendData,
 			a_sizeRecvData,
 			i2cId,
 			IMGSENSOR_I2C_SPEED);
-	#else
-	return imgsensor_i2c_read(
-			imgsensor_i2c_get_device(),
-			a_pSendData,
-			a_sizeSendData,
-			a_pRecvData,
-			a_sizeRecvData,
-			i2cId,
-			IMGSENSOR_I2C_SPEED);
-	#endif
 }
 
 int iReadRegI2CTiming(u8 *a_pSendData, u16 a_sizeSendData, u8 *a_pRecvData,
@@ -46,7 +35,6 @@ int iReadRegI2CTiming(u8 *a_pSendData, u16 a_sizeSendData, u8 *a_pRecvData,
 	if (imgsensor_i2c_get_device() == NULL)
 		return IMGSENSOR_RETURN_ERROR;
 
-	#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	return imgsensor_i2c_read(
 			imgsensor_i2c_get_device(),
 			a_pSendData,
@@ -55,16 +43,6 @@ int iReadRegI2CTiming(u8 *a_pSendData, u16 a_sizeSendData, u8 *a_pRecvData,
 			a_sizeRecvData,
 			i2cId,
 			timing);
-	#else
-	return imgsensor_i2c_read(
-			imgsensor_i2c_get_device(),
-			a_pSendData,
-			a_sizeSendData,
-			a_pRecvData,
-			a_sizeRecvData,
-			i2cId,
-			timing);
-	#endif
 }
 
 int iWriteRegI2C(u8 *a_pSendData, u16 a_sizeSendData, u16 i2cId)
@@ -72,7 +50,6 @@ int iWriteRegI2C(u8 *a_pSendData, u16 a_sizeSendData, u16 i2cId)
 	if (imgsensor_i2c_get_device() == NULL)
 		return IMGSENSOR_RETURN_ERROR;
 
-	#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	return imgsensor_i2c_write(
 			imgsensor_i2c_get_device(),
 			a_pSendData,
@@ -80,15 +57,6 @@ int iWriteRegI2C(u8 *a_pSendData, u16 a_sizeSendData, u16 i2cId)
 			a_sizeSendData,
 			i2cId,
 			IMGSENSOR_I2C_SPEED);
-	#else
-	return imgsensor_i2c_write(
-			imgsensor_i2c_get_device(),
-			a_pSendData,
-			a_sizeSendData,
-			a_sizeSendData,
-			i2cId,
-			IMGSENSOR_I2C_SPEED);
-	#endif
 }
 
 int iWriteRegI2CTiming(u8 *a_pSendData, u16 a_sizeSendData,
@@ -97,7 +65,6 @@ int iWriteRegI2CTiming(u8 *a_pSendData, u16 a_sizeSendData,
 	if (imgsensor_i2c_get_device() == NULL)
 		return IMGSENSOR_RETURN_ERROR;
 
-	#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	return imgsensor_i2c_write(
 			imgsensor_i2c_get_device(),
 			a_pSendData,
@@ -105,15 +72,6 @@ int iWriteRegI2CTiming(u8 *a_pSendData, u16 a_sizeSendData,
 			a_sizeSendData,
 			i2cId,
 			timing);
-	#else
-	return imgsensor_i2c_write(
-			imgsensor_i2c_get_device(),
-			a_pSendData,
-			a_sizeSendData,
-			a_sizeSendData,
-			i2cId,
-			timing);
-	#endif
 }
 
 int iBurstWriteReg(u8 *pData, u32 bytes, u16 i2cId)
@@ -121,7 +79,6 @@ int iBurstWriteReg(u8 *pData, u32 bytes, u16 i2cId)
 	if (imgsensor_i2c_get_device() == NULL)
 		return IMGSENSOR_RETURN_ERROR;
 
-	#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	return imgsensor_i2c_write(
 			imgsensor_i2c_get_device(),
 			pData,
@@ -129,15 +86,6 @@ int iBurstWriteReg(u8 *pData, u32 bytes, u16 i2cId)
 			bytes,
 			i2cId,
 			IMGSENSOR_I2C_SPEED);
-	#else
-	return imgsensor_i2c_write(
-			imgsensor_i2c_get_device(),
-			pData,
-			bytes,
-			bytes,
-			i2cId,
-			IMGSENSOR_I2C_SPEED);
-	#endif
 }
 
 int iBurstWriteReg_multi(u8 *pData, u32 bytes, u16 i2cId,
@@ -146,7 +94,6 @@ int iBurstWriteReg_multi(u8 *pData, u32 bytes, u16 i2cId,
 	if (imgsensor_i2c_get_device() == NULL)
 		return IMGSENSOR_RETURN_ERROR;
 
-	#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	return imgsensor_i2c_write(
 			imgsensor_i2c_get_device(),
 			pData,
@@ -154,15 +101,6 @@ int iBurstWriteReg_multi(u8 *pData, u32 bytes, u16 i2cId,
 			transfer_length,
 			i2cId,
 			timing);
-	#else
-	return imgsensor_i2c_write(
-			imgsensor_i2c_get_device(),
-			pData,
-			bytes,
-			transfer_length,
-			i2cId,
-			timing);
-	#endif
 }
 
 #endif

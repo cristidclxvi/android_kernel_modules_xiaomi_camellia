@@ -5,9 +5,7 @@
 
 #include "kd_imgsensor.h"
 #include "imgsensor_sensor_list.h"
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 /* Add Sensor Init function here
  * Note:
  * 1. Add by the resolution from ""large to small"", due to large sensor

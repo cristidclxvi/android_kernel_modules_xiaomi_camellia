@@ -94,9 +94,6 @@ enum wl2868c_ldo_num {
 	WL2868C_LDO5 = 5,
 	WL2868C_LDO6 = 6,
 	WL2868C_LDO7 = 7,
-	#ifdef OPLUS_FEATURE_DISPLAY
-	WL2868C_LDOx_EN = 0x0e,
-	#endif
 };
 
 const unsigned int ldo12_voltage_base = 496; /* 496mv */
@@ -299,54 +296,6 @@ int wl2868c_voltage_output(unsigned int ldo_num, int vol)
 	return ret;
 }
 EXPORT_SYMBOL(wl2868c_voltage_output);
-#ifdef OPLUS_FEATURE_DISPLAY
-int wl2868c_get_register_value(unsigned int ldo_num, u8 *vol)
-{
-	int ret = 0;
-	u8 ldo_reg_val = 0;
-	u8 ulvo_ctl_reg = 0x24;
-	u8 ulvo_ctl_reg_val = 0x00;
-	if (NULL == vol) {
-		pr_err("%s, param vol is null\n", __func__);
-		return -1;
-	}
-	/* 0x24(bit0-4):UVLO Rising Threshold = 1.5V+0.05*X; default/reset value is 3.00V. */
-	wl2868c_read_reg(ulvo_ctl_reg, &ulvo_ctl_reg_val);
-	pr_debug("ulvo_ctl_reg_val:%x", ulvo_ctl_reg_val);
-	pr_debug("%s,get ldo_num = %d\n", __func__, ldo_num);
-	switch (ldo_num) {
-	case WL2868C_LDO1:
-		ret =  wl2868c_read_reg(WL2868C_REG_LDO1_VOUT, &ldo_reg_val);
-		break;
-	case WL2868C_LDO2:
-		ret =  wl2868c_read_reg(WL2868C_REG_LDO2_VOUT, &ldo_reg_val);
-		break;
-	case WL2868C_LDO3:
-		ret =  wl2868c_read_reg(WL2868C_REG_LDO3_VOUT, &ldo_reg_val);
-		break;
-	case WL2868C_LDO4:
-		ret =  wl2868c_read_reg(WL2868C_REG_LDO4_VOUT, &ldo_reg_val);
-		break;
-	case WL2868C_LDO5:
-		ret =  wl2868c_read_reg(WL2868C_REG_LDO5_VOUT, &ldo_reg_val);
-		break;
-	case WL2868C_LDO6:
-		ret =  wl2868c_read_reg(WL2868C_REG_LDO6_VOUT, &ldo_reg_val);
-		break;
-	case WL2868C_LDO7:
-		ret =  wl2868c_read_reg(WL2868C_REG_LDO7_VOUT, &ldo_reg_val);
-		break;
-	case WL2868C_LDOx_EN:
-		ret =  wl2868c_read_reg(WL2868C_REG_LDOX_EN, &ldo_reg_val);
-		break;
-	default:
-		return -1;
-	}
-	*vol = ldo_reg_val;
-	pr_debug("%s:read val = %d ok\n", __func__, *vol);
-	return ret;
-}
-#endif
 
 /*!
  * wl2868c power on function

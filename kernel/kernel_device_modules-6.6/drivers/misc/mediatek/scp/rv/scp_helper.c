@@ -1348,12 +1348,6 @@ void scp_wdt_reset(int cpu_id)
 #else
 	{
 #endif
-#ifdef OPLUS_FEATURE_SENSOR
-	if (cpu_id == 0 && IS_ERR_OR_NULL((void const *) scpreg.cfg_core0)) {
-		pr_debug("[SCP] scpreg.cfg_core0 error\n");
-		return;
-	}
-#endif /* OPLUS_FEATURE_SENSOR */
 	scp_write_reset_register_with_retry(cpu_id);
 
 	if (sap_enabled() && cpu_id == sap_get_core_id())

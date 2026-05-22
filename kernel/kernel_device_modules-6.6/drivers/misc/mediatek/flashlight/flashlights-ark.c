@@ -28,9 +28,6 @@
 #include <linux/i2c.h>
 #include <linux/slab.h>
 #include <linux/pinctrl/consumer.h>
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#include <soc/oplus/system/oplus_project.h>
-#endif
 
 #include "flashlight-core.h"
 #include "flashlight-dt.h"

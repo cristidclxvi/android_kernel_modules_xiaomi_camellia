@@ -246,21 +246,21 @@ subdir-ccflags-y += -I$(DEVICE_MODULES_PATH)/drivers/misc/mediatek/include/mt-pl
 
 #ifdef OPLUS_FEATURE_DISPLAY
 #build oplus file into mediatek_drm.ko
-mediatek-drm-y += ../../oplus/oplus_display_interface.o \
-		../../oplus/oplus_display_utils.o \
-		../../oplus/oplus_display_sysfs_attrs.o \
-		../../oplus/oplus_display_power.o \
-		../../oplus/oplus_display_device_ioctl.o \
-		../../oplus/oplus_display_dc.o \
-		../../oplus/oplus_display_onscreenfingerprint.o \
-		../../oplus/oplus_display_device.o \
-		../../oplus/oplus_adfr.o \
-		../../oplus/oplus_display_temp_compensation.o \
-		../../oplus/oplus_display_pwm.o \
-		../../oplus/oplus_display_debug.o \
-		../../oplus/oplus_display_apollo_brightness.o \
-		../../oplus/oplus_dsi_panel_cmd.o \
-		../../oplus/oplus_dsi_display_config.o \
-		../../oplus/oplus_dsi_display_parser.o \
-		../../oplus/oplus_display_trackpoint_report.o
+# camellia: &oplus_display_interface.o \
+# camellia: &oplus_display_utils.o \
+# camellia: &oplus_display_sysfs_attrs.o \
+# camellia: &oplus_display_power.o \
+# camellia: &oplus_display_device_ioctl.o \
+# camellia: &oplus_display_dc.o \
+# camellia: &oplus_display_onscreenfingerprint.o \
+# camellia: &oplus_display_device.o \
+# camellia: &oplus_adfr.o \
+# camellia: &oplus_display_temp_compensation.o \
+# camellia: &oplus_display_pwm.o \
+# camellia: &oplus_display_debug.o \
+# camellia: &oplus_display_apollo_brightness.o \
+# camellia: &oplus_dsi_panel_cmd.o \
+# camellia: &oplus_dsi_display_config.o \
+# camellia: &oplus_dsi_display_parser.o \
+# camellia: &oplus_display_trackpoint_report.o
 #endif /* OPLUS_FEATURE_DISPLAY */

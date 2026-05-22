@@ -12,3 +12,10 @@ MAKE_GOALS=
 if [ -n "${GKI_DEFCONFIG_FRAGMENT}" ]; then
 source ${GKI_DEFCONFIG_FRAGMENT}
 fi
+
+# Camellia LOS 23 port: OnePlus modules tree was authored for kernel 5.15.
+# Linux 6.6 promoted MIN/MAX into include/linux/minmax.h, so 65+ OnePlus
+# files now hit -Werror=macro-redefined. Relax the warning to a non-error
+# (still visible in build log) so the port proceeds.
+KCFLAGS="${KCFLAGS} -Wno-error=macro-redefined"
+export KCFLAGS

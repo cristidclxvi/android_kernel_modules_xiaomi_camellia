@@ -926,20 +926,6 @@ bool ged_dvfs_cal_gpu_utilization_ex(unsigned int *pui32Loading,
 			trace_GPU_DVFS__Loading(Util_Ex->util_active, Util_Ex->util_ta,
 				Util_Ex->util_3d, Util_Ex->util_compute, Util_Ex->util_iter,
 				Util_Ex->util_mcu,Util_Ex->util_iter_u_mcu);
-			#ifdef OPLUS_ARCH_EXTENDS
-			trace_oplus_tracing_mark_write(5566, "util_active",
-				(long long)(Util_Ex->util_active));
-			trace_oplus_tracing_mark_write(5566, "util_ta",
-				(long long)(Util_Ex->util_ta));
-			trace_oplus_tracing_mark_write(5566, "util_3d",
-				(long long)(Util_Ex->util_3d));
-			trace_oplus_tracing_mark_write(5566, "util_compute",
-				(long long)(Util_Ex->util_compute));
-			trace_oplus_tracing_mark_write(5566, "util_iter",
-				(long long)(Util_Ex->util_iter));
-			trace_oplus_tracing_mark_write(5566, "util_mcu",
-				(long long)(Util_Ex->util_mcu));
-			#endif /* OPLUS_ARCH_EXTENDS */
 
 			//use loading to decide whether early force fallback in LOADING_MAX_ITERMCU & loading base
 			if (g_max_core_num == SHADER_CORE &&
@@ -1302,10 +1288,6 @@ bool ged_dvfs_gpu_freq_commit(unsigned long ui32NewFreqID,
 
 		trace_tracing_mark_write(5566, "gpu_freq",
 			(long long) div_u64(ged_get_cur_stack_freq(), 1000));
-		#ifdef OPLUS_ARCH_EXTENDS
-		trace_oplus_tracing_mark_write(5566, "gpu_freq",
-			(long long) div_u64(ged_get_cur_stack_freq(), 1000));
-		#endif /*OPLUS_ARCH_EXTENDS*/
 		sc_freq_diff = ged_get_cur_stack_out_freq() > 0 ?
 			ged_get_cur_stack_out_freq() - ged_get_cur_real_stack_freq() : 0;
 		top_freq_diff = ged_get_cur_top_out_freq() > 0 ?
@@ -1326,16 +1308,6 @@ bool ged_dvfs_gpu_freq_commit(unsigned long ui32NewFreqID,
 		trace_tracing_mark_write(5566, "limitter_floor",
 			ged_get_cur_limiter_floor());
 
-		#ifdef OPLUS_ARCH_EXTENDS
-		trace_oplus_tracing_mark_write(5566, "gpu_freq_ceil",
-			(long long) div_u64(ged_get_freq_by_idx(ui32CeilingID), 1000));
-		trace_oplus_tracing_mark_write(5566, "gpu_freq_floor",
-			(long long) div_u64(ged_get_freq_by_idx(ui32FloorID), 1000));
-		trace_oplus_tracing_mark_write(5566, "limitter_ceil",
-			ged_get_cur_limiter_ceil());
-		trace_oplus_tracing_mark_write(5566, "limitter_floor",
-			ged_get_cur_limiter_floor());
-		#endif /*OPLUS_ARCH_EXTENDS*/
 		if (ged_get_cur_limiter_ceil() == LIMIT_POWERHAL) {
 			trace_tracing_mark_write(5566, "limitter_ceil_pid",
 				g_cust_upbound_freq_id_info.pid);
@@ -1343,14 +1315,6 @@ bool ged_dvfs_gpu_freq_commit(unsigned long ui32NewFreqID,
 				g_cust_upbound_freq_id_info.user_id);
 			trace_tracing_mark_write(5566, "limitter_ceil_cus_val",
 				g_cust_upbound_freq_id_info.value);
-			#ifdef OPLUS_ARCH_EXTENDS
-			trace_oplus_tracing_mark_write(5566, "limitter_ceil_pid",
-				g_cust_upbound_freq_id_info.pid);
-			trace_oplus_tracing_mark_write(5566, "limitter_ceil_id",
-				g_cust_upbound_freq_id_info.user_id);
-			trace_oplus_tracing_mark_write(5566, "limitter_ceil_cus_val",
-				g_cust_upbound_freq_id_info.value);
-			#endif /*OPLUS_ARCH_EXTENDS*/
 		}
 
 		if (ged_get_cur_limiter_floor() == LIMIT_POWERHAL) {
@@ -1360,19 +1324,8 @@ bool ged_dvfs_gpu_freq_commit(unsigned long ui32NewFreqID,
 				g_cust_boost_freq_id_info.user_id);
 			trace_tracing_mark_write(5566, "limitter_floor_cus_val",
 				g_cust_boost_freq_id_info.value);
-			#ifdef OPLUS_ARCH_EXTENDS
-			trace_oplus_tracing_mark_write(5566, "limitter_floor_pid",
-				g_cust_boost_freq_id_info.pid);
-			trace_oplus_tracing_mark_write(5566, "limitter_floor_id",
-				g_cust_boost_freq_id_info.user_id);
-			trace_oplus_tracing_mark_write(5566, "limitter_floor_cus_val",
-				g_cust_boost_freq_id_info.value);
-			#endif /*OPLUS_ARCH_EXTENDS*/
 		}
 		trace_tracing_mark_write(5566, "commit_type", eCommitType);
-		#ifdef OPLUS_ARCH_EXTENDS
-		trace_oplus_tracing_mark_write(5566, "commit_type", eCommitType);
-		#endif /*OPLUS_ARCH_EXTENDS*/
 
 		if (dcs_get_adjust_support() % 2 != 0)
 			trace_tracing_mark_write(5566, "preserve", g_force_disable_dcs);
@@ -1501,10 +1454,6 @@ bool ged_dvfs_gpu_freq_dual_commit(unsigned long stackNewFreqID,
 
 	trace_tracing_mark_write(5566, "gpu_freq",
 		(long long) div_u64(ged_get_cur_stack_freq(), 1000));
-	#ifdef OPLUS_ARCH_EXTENDS
-	trace_oplus_tracing_mark_write(5566, "gpu_freq",
-		(long long) div_u64(ged_get_cur_stack_freq(), 1000));
-	#endif /*OPLUS_ARCH_EXTENDS*/
 	sc_freq_diff = ged_get_cur_stack_out_freq() > 0 ?
 		ged_get_cur_stack_out_freq() - ged_get_cur_real_stack_freq() : 0;
 	top_freq_diff = ged_get_cur_top_out_freq() > 0 ?
@@ -1522,16 +1471,6 @@ bool ged_dvfs_gpu_freq_dual_commit(unsigned long stackNewFreqID,
 		ged_get_cur_limiter_ceil());
 	trace_tracing_mark_write(5566, "limitter_floor",
 		ged_get_cur_limiter_floor());
-	#ifdef OPLUS_ARCH_EXTENDS
-	trace_oplus_tracing_mark_write(5566, "gpu_freq_ceil",
-		(long long) div_u64(ged_get_freq_by_idx(ui32CeilingID), 1000));
-	trace_oplus_tracing_mark_write(5566, "gpu_freq_floor",
-		(long long) div_u64(ged_get_freq_by_idx(ui32FloorID), 1000));
-	trace_oplus_tracing_mark_write(5566, "limitter_ceil",
-		ged_get_cur_limiter_ceil());
-	trace_oplus_tracing_mark_write(5566, "limitter_floor",
-		ged_get_cur_limiter_floor());
-	#endif /*OPLUS_ARCH_EXTENDS*/
 	if (ged_get_cur_limiter_ceil() == LIMIT_POWERHAL) {
 		trace_tracing_mark_write(5566, "limitter_ceil_pid",
 			g_cust_upbound_freq_id_info.pid);
@@ -1539,14 +1478,6 @@ bool ged_dvfs_gpu_freq_dual_commit(unsigned long stackNewFreqID,
 			g_cust_upbound_freq_id_info.user_id);
 		trace_tracing_mark_write(5566, "limitter_ceil_cus_val",
 			g_cust_upbound_freq_id_info.value);
-		#ifdef OPLUS_ARCH_EXTENDS
-		trace_oplus_tracing_mark_write(5566, "limitter_ceil_pid",
-			g_cust_upbound_freq_id_info.pid);
-		trace_oplus_tracing_mark_write(5566, "limitter_ceil_id",
-			g_cust_upbound_freq_id_info.user_id);
-		trace_oplus_tracing_mark_write(5566, "limitter_ceil_cus_val",
-			g_cust_upbound_freq_id_info.value);
-		#endif /*OPLUS_ARCH_EXTENDS*/
 	}
 
 	if (ged_get_cur_limiter_floor() == LIMIT_POWERHAL) {
@@ -1556,21 +1487,10 @@ bool ged_dvfs_gpu_freq_dual_commit(unsigned long stackNewFreqID,
 			g_cust_boost_freq_id_info.user_id);
 		trace_tracing_mark_write(5566, "limitter_floor_cus_val",
 			g_cust_boost_freq_id_info.value);
-		#ifdef OPLUS_ARCH_EXTENDS
-		trace_oplus_tracing_mark_write(5566, "limitter_floor_pid",
-			g_cust_boost_freq_id_info.pid);
-		trace_oplus_tracing_mark_write(5566, "limitter_floor_id",
-			g_cust_boost_freq_id_info.user_id);
-		trace_oplus_tracing_mark_write(5566, "limitter_floor_cus_val",
-			g_cust_boost_freq_id_info.value);
-		#endif /*OPLUS_ARCH_EXTENDS*/
 	}
 	if (eCommitType != GED_DVFS_EB_DESIRE_COMMIT)
 	{
 		trace_tracing_mark_write(5566, "commit_type", eCommitType);
-		#ifdef OPLUS_ARCH_EXTENDS
-		trace_oplus_tracing_mark_write(5566, "commit_type", eCommitType);
-		#endif /*OPLUS_ARCH_EXTENDS*/
 	}
 	else
 		trace_tracing_mark_write(5566, "eb_update_vir", stackNewFreqID);

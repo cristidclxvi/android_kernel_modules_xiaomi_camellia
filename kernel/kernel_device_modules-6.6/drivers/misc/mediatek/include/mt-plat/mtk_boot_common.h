@@ -35,18 +35,6 @@ enum boot_mode_t {
 //#endif /* OPLUS_BUG_STABILITY */
 	UNKNOWN_BOOT
 };
-#ifdef OPLUS_BUG_STABILITY
-typedef enum
-{
-	OPLUS_NORMAL_BOOT = 0,
-	OPLUS_SILENCE_BOOT = 1,
-	OPLUS_SAFE_BOOT = 2,
-	OPLUS_AGING_BOOT = 3,
-	OPLUS_UNKNOWN_BOOT
-}OPLUS_BOOTMODE;
-
-extern OPLUS_BOOTMODE oplus_boot_mode;
-#endif /* OPLUS_BUG_STABILITY */
 
 
 /* for boot type usage */

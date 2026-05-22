@@ -3130,11 +3130,6 @@ EXPORT_SYMBOL(is_usb_rdy);
 
 void Charger_Detect_Init(void)
 {
-#ifdef OPLUS_FEATURE_CHG_BASIC
-	if (!glue->phy) {
-		return;
-	}
-#endif
 
 	usb_prepare_enable_clock(true);
 
@@ -3151,11 +3146,6 @@ EXPORT_SYMBOL(Charger_Detect_Init);
 
 void Charger_Detect_Release(void)
 {
-#ifdef OPLUS_FEATURE_CHG_BASIC
-	if (!glue->phy) {
-		return;
-	}
-#endif
 
 	usb_prepare_enable_clock(true);
 
@@ -3168,32 +3158,6 @@ void Charger_Detect_Release(void)
 	DBG(0, "%s\n", __func__);
 }
 EXPORT_SYMBOL(Charger_Detect_Release);
-
-#ifdef OPLUS_FEATURE_CHG_BASIC
-#define PHY_MODE_DPPULLUP_SET 5
-#define PHY_MODE_DPPULLUP_CLR 6
-void oplus_chg_pullup_dp_set(bool is_on)
-{
-	static bool dp_set = false;
-
-	if (!glue->phy) {
-		return;
-	}
-
-	if (dp_set == is_on)
-		return;
-
-	if (!is_on)
-		goto dppullup_clr;
-	phy_set_mode_ext(glue->phy, PHY_MODE_USB_DEVICE, PHY_MODE_DPPULLUP_SET);
-	mdelay(50);
-dppullup_clr:
-	phy_set_mode_ext(glue->phy, PHY_MODE_USB_DEVICE, PHY_MODE_DPPULLUP_CLR);
-
-	DBG(0, "%s\n", __func__);
-}
-EXPORT_SYMBOL(oplus_chg_pullup_dp_set);
-#endif
 
 #ifndef FPGA_PLATFORM
 #include <linux/arm-smccc.h>

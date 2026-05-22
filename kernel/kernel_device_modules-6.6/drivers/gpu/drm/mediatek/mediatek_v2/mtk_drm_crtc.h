@@ -541,11 +541,6 @@ enum MTK_CRTC_PROP {
 	CRTC_PROP_BL_SYNC_GAMMA_GAIN,
 	CRTC_PROP_DYNAMIC_WCG_OFF,
 	CRTC_PROP_WCG_BY_COLOR_MODE,
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-	CRTC_PROP_AUTO_MODE,
-	CRTC_PROP_AUTO_FAKE_FRAME,
-	CRTC_PROP_AUTO_MIN_FPS,
-#endif /* OPLUS_FEATURE_DISPLAY_ADFR */
 /* #ifdef OPLUS_FEATURE_LOCAL_HDR  */
 	CRTC_PROP_HW_BRIGHTNESS,
 	CRTC_PROP_BRIGHTNESS_NEED_SYNC,
@@ -1225,9 +1220,6 @@ struct mtk_drm_crtc {
 
 	atomic_t force_high_step;
 	int force_high_enabled;
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-	struct oplus_apollo_brightness *oplus_apollo_br;
-#endif /* OPLUS_FEATURE_DISPLAY_APOLLO */
 	struct total_tile_overhead tile_overhead;
 	struct total_tile_overhead_v tile_overhead_v;
 
@@ -1665,11 +1657,6 @@ void mtk_crtc_exec_atf_prebuilt_instr(struct mtk_drm_crtc *mtk_crtc,
 
 unsigned int mtk_get_cur_spr_type(struct drm_crtc *crtc);
 
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-extern int mtk_drm_setbacklight_without_lock(struct drm_crtc *crtc, unsigned int level,
-			unsigned int panel_ext_param, unsigned int cfg_flag);
-#endif /* OPLUS_FEATURE_DISPLAY_APOLLO */
-
 int mtk_drm_switch_spr(struct drm_crtc *crtc, unsigned int en, unsigned int need_lock);
 
 int mtk_vblank_config_rec_init(struct drm_crtc *crtc);
@@ -1699,18 +1686,6 @@ void mtk_drm_crtc_exdma_path_setting_reset_without_cmdq(struct mtk_drm_crtc *mtk
 
 void mtk_crtc_gce_event_config(struct drm_crtc *crtc);
 void mtk_crtc_vdisp_ao_config(struct drm_crtc *crtc);
-
-#ifdef OPLUS_FEATURE_DISPLAY
-void mtk_drm_send_lcm_cmd_prepare(struct drm_crtc *crtc,
-  	struct cmdq_pkt **cmdq_handle);
-void mtk_drm_send_lcm_cmd_flush(struct drm_crtc *crtc,
-  	struct cmdq_pkt **cmdq_handle, bool sync);
-bool mtk_crtc_is_event_loop_active(struct mtk_drm_crtc *mtk_crtc);
-#endif /* OPLUS_FEATURE_DISPLAY */
-#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
-void mtk_atomic_hbm_bypass_pq(struct drm_crtc *crtc,
-		struct cmdq_pkt *handle, int en);
-#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
 
 
 #if IS_ENABLED(CONFIG_DRM_MEDIATEK_AUTO_YCT)

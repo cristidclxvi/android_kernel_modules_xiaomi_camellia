@@ -79,47 +79,15 @@
 #include "mtk-mml-color.h"
 
 #include <soc/mediatek/mmqos.h>
-#ifdef OPLUS_FEATURE_DISPLAY
-#include "mtk_dsi.h"
-#include "oplus_display_apollo_brightness.h"
-#include "oplus_display_interface.h"
-extern unsigned long long oplus_last_te_time;
-#endif
 
 #if IS_ENABLED(CONFIG_DRM_MEDIATEK_AUTO_YCT)
 #include "mtk_drm_auto/mtk_drm_ddp_comp_auto.h"
 #include "mtk_drm_auto/mtk_drm_crtc_auto.h"
 #endif
 
-#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
-#include "oplus_display_onscreenfingerprint.h"
-#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
-
 /*#ifdef OPLUS_BUG_STABILITY*/
 bool osc_flag = 0;
 /*#endif*/
-
-#ifdef OPLUS_TRACKPOINT_REPORT
-#include "oplus_display_trackpoint_report.h"
-#endif /* OPLUS_TRACKPOINT_REPORT */
-
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-extern void oplus_display_apollo_init_para(struct drm_crtc *crtc);
-extern void oplus_sync_panel_brightness(struct drm_crtc *crtc);
-extern void oplus_update_apollo_para(struct drm_crtc *crtc);
-extern int oplus_display_backlight_property_update(struct drm_crtc *crtc, int prop_id, unsigned int prop_val);
-extern bool oplus_apollo_unsupported(void);
-#endif /* OPLUS_FEATURE_DISPLAY_APOLLO */
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-#include "oplus_adfr.h"
-#endif /* OPLUS_FEATURE_DISPLAY_ADFR  */
-
-#ifdef OPLUS_FEATURE_DISPLAY
-extern int g_commit_pid;
-bool dl_rgb_flag = false;
-bool dl_color_flag = false;
-bool dl_ccorr_flag = false;
-#endif /* OPLUS_FEATURE_DISPLAY */
 
 // [0] after mode switch [1] fps hint
 int dynamic_vidle_enable;
@@ -179,11 +147,6 @@ static struct mtk_drm_property mtk_crtc_property[CRTC_PROP_MAX] = {
 	{DRM_MODE_PROP_ATOMIC, "BL_SYNC_GAMMA_GAIN", 0, ULONG_MAX, 0},
 	{DRM_MODE_PROP_ATOMIC, "DYNAMIC_WCG_OFF", 0, ULONG_MAX, 0},
 	{DRM_MODE_PROP_ATOMIC, "WCG_BY_COLOR_MODE", 0, ULONG_MAX, 0},
- #ifdef OPLUS_FEATURE_DISPLAY_ADFR
-	{DRM_MODE_PROP_ATOMIC, "AUTO_MODE", 0, UINT_MAX, 0},
-	{DRM_MODE_PROP_ATOMIC, "AUTO_FAKE_FRAME", 0, UINT_MAX, 0},
-	{DRM_MODE_PROP_ATOMIC, "AUTO_MIN_FPS", 0, UINT_MAX, 0},
-#endif /* OPLUS_FEATURE_DISPLAY_ADFR */
 	{DRM_MODE_PROP_ATOMIC, "HW_BRIGHTNESS", 0, UINT_MAX, 0},
 	{DRM_MODE_PROP_ATOMIC, "BRIGHTNESS_NEED_SYNC", 0, UINT_MAX, 0},
 	{DRM_MODE_PROP_ATOMIC, "STYLUS_MODE", 0, ULONG_MAX, 0}
@@ -2043,24 +2006,7 @@ static int mtk_drm_crtc_set_property(struct drm_crtc *crtc,
 			DDPINFO("crtc:%d set property:%s %llu\n",
 					index, property->name,
 					val);
-#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
-			oplus_ofp_property_update(i, val);
-#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
 
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-			if (!(oplus_apollo_unsupported())) {
-				oplus_display_backlight_property_update(crtc, i, val);
-			}
-#endif /* OPLUS_FEATURE_DISPLAY_APOLLO */
-
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-			{
-				struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-				if (mtk_crtc) {
-					oplus_adfr_handle_auto_mode(crtc, i, val);
-				}
-			}
-#endif
 			return ret;
 		}
 	}
@@ -2463,22 +2409,6 @@ int mtk_drm_setbacklight(struct drm_crtc *crtc, unsigned int level,
 
 	CRTC_MMP_EVENT_START(index, backlight, (unsigned long)crtc,
 			level);
-
-#ifdef OPLUS_FEATURE_DISPLAY
-	oplus_panel_init(crtc);
-#endif /* OPLUS_FEATURE_DISPLAY */
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-	if (level == 0) {
-		mtk_crtc->oplus_apollo_br->oplus_power_on = false;
-	} else if (level > 0) {
-		mtk_crtc->oplus_apollo_br->oplus_power_on = true;
-	}
-
-	if (atomic_read(&priv->kernel_pm.status) != KERNEL_PM_RESUME) {
-		DDPMSG("%s not pm_resume State set backlight stop\n", __func__);
-		return -EINVAL;
-	}
-#endif /*OPLUS_FEATURE_DISPLAY_APOLLO*/
 
 	if (lock)
 		DDP_MUTEX_LOCK(&mtk_crtc->lock, __func__, __LINE__);
@@ -2892,13 +2822,8 @@ int mtk_drm_setbacklight_grp(struct drm_crtc *crtc, unsigned int level,
 	return 0;
 }
 
-#ifdef OPLUS_FEATURE_DISPLAY
-void mtk_drm_crtc_wk_lock(struct drm_crtc *crtc, bool get,
-	const char *func, int line);
-#else
 static void mtk_drm_crtc_wk_lock(struct drm_crtc *crtc, bool get,
 	const char *func, int line);
-#endif
 
 int mtk_drm_aod_setbacklight(struct drm_crtc *crtc, unsigned int level)
 {
@@ -6252,9 +6177,6 @@ static void copy_drm_disp_mode(struct drm_display_mode *src,
 	dst->vsync_start = src->vsync_start;
 	dst->vsync_end   = src->vsync_end;
 	dst->vtotal      = src->vtotal;
-	#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-	dst->hskew		 = src->hskew;
-	#endif /* OPLUS_FEATURE_DISPLAY_ADFR  */
 }
 
 struct golden_setting_context *
@@ -8082,19 +8004,12 @@ static int _mtk_crtc_cmdq_smi_info_dump(void *data)
 	return 0;
 }
 
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-void mtk_crtc_cmdq_timeout_cb(struct cmdq_cb_data data)
-#else
 static void mtk_crtc_cmdq_timeout_cb(struct cmdq_cb_data data)
-#endif /* OPLUS_FEATURE_DISPLAY_ADFR */
 {
 	struct drm_crtc *crtc = data.data;
 	struct mtk_drm_private *priv = NULL;
 	int id;
 
-#ifdef OPLUS_TRACKPOINT_REPORT
-	static int err_num = 0;
-#endif
 #ifndef DRM_CMDQ_DISABLE
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	struct cmdq_client *client = mtk_crtc->gce_obj.client[CLIENT_CFG];
@@ -8108,10 +8023,6 @@ static void mtk_crtc_cmdq_timeout_cb(struct cmdq_cb_data data)
 		DDPPR_ERR("%s find crtc fail\n", __func__);
 		return;
 	}
-
-#ifdef OPLUS_FEATURE_DISPLAY
-	oplus_display_set_mobile_log(true);
-#endif
 
 	if (mtk_crtc->base.dev && mtk_crtc->base.dev->dev_private)
 		priv = mtk_crtc->base.dev->dev_private;
@@ -8160,37 +8071,9 @@ static void mtk_crtc_cmdq_timeout_cb(struct cmdq_cb_data data)
 
 		DDPMSG("------ Dump trigger loop ------\n");
 	}
-#ifdef OPLUS_FEATURE_DISPLAY
-	if ((mtk_crtc->event_loop_cmdq_handle) &&
-				(mtk_crtc->event_loop_cmdq_handle->cl)) {
-		cl = (struct cmdq_client *)mtk_crtc->event_loop_cmdq_handle->cl;
-		DDPMSG("++++++ Dump event loop ++++++\n");
-		cmdq_thread_dump(cl->chan, mtk_crtc->event_loop_cmdq_handle,
-				&inst, &trig_pc);
-		cmdq_dump_pkt(mtk_crtc->event_loop_cmdq_handle, trig_pc, true);
-
-		DDPMSG("------ Dump event loop ------\n");
-	}
-#endif
 	atomic_set(&mtk_crtc->cmdq_trig, 1);
 #endif
 
-#ifdef OPLUS_FEATURE_DISPLAY
-	/* CMDQ driver would not trigger aee when timeout. */
-	DDPAEE("%s cmdq timeout, crtc id:%d\nCRDISPATCH_KEY:DDP:%s cmdq timeout\n",
-		__func__, drm_crtc_index(crtc), __func__);
-#endif
-
-#ifdef OPLUS_TRACKPOINT_REPORT
-	if (err_num < 5) {
-		display_exception_trackpoint_report("DisplayDriverID@@508$$ cmdq timeout Begin of Error %u", err_num);
-		err_num ++;
-	}
-#endif
-#ifdef OPLUS_FEATURE_DISPLAY
-	oplus_display_set_mobile_log(false);
-	oplus_display_kill_surfaceflinger();
-#endif
 }
 
 int mtk_crtc_cmdq_timeout_aee_cb(struct cmdq_cb_data data)
@@ -10417,16 +10300,6 @@ void mtk_crtc_start_event_loop(struct drm_crtc *crtc)
 	struct cmdq_operand lop, rop;
 	const u16 var1 = CMDQ_THR_SPR_IDX2;
 	const u16 var2 = CMDQ_THR_SPR_IDX3;
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-	mtk_crtc->pre_te_cfg.prefetch_te_en = false;
-	mtk_crtc->pre_te_cfg.merge_trigger_en = false;
-	mtk_crtc->pre_te_cfg.vidle_apsrc_off_en = false;
-	mtk_crtc->pre_te_cfg.vidle_dsi_pll_off_en = false;
-	if (crtc->state->mode.hskew == OPLUS_ADFR || crtc->state->mode.hskew == OPLUS_MFR) {
-		DDPMSG("not start event loop in OA mode\n");
-		return;
-	}
-#endif /* OPLUS_FEATURE_DISPLAY_ADFR */
 	priv = mtk_crtc->base.dev->dev_private;
 	mtk_crtc->pre_te_cfg.prefetch_te_en =
 		mtk_drm_helper_get_opt(priv->helper_opt, MTK_DRM_OPT_PREFETCH_TE);
@@ -14071,13 +13944,8 @@ end:
 	DDP_PROFILE("[PROFILE] %s-\n", __func__);
 }
 
-#ifdef OPLUS_FEATURE_DISPLAY
-void mtk_drm_crtc_wk_lock(struct drm_crtc *crtc, bool get,
-	const char *func, int line)
-#else
 static void mtk_drm_crtc_wk_lock(struct drm_crtc *crtc, bool get,
 	const char *func, int line)
-#endif
 {
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	struct mtk_drm_private *priv = crtc->dev->dev_private;
@@ -14647,9 +14515,6 @@ void mtk_drm_crtc_init_para(struct drm_crtc *crtc)
 
 	mtk_crtc->mml_cfg = NULL;
 	mtk_crtc->mml_cfg_pq = NULL;
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-	oplus_display_apollo_init_para(crtc);
-#endif /* OPLUS_FEATURE_DISPLAY_APOLLO */
 }
 
 void mtk_crtc_first_enable_ddp_config(struct mtk_drm_crtc *mtk_crtc)
@@ -16548,11 +16413,6 @@ static void mtk_drm_crtc_atomic_begin(struct drm_crtc *crtc,
 	struct cmdq_client *client;
 #endif
 
-#ifdef OPLUS_FEATURE_DISPLAY
-	struct drm_display_mode *adjust_mode;
-	unsigned int cur_fps = 0;
-	int mode_idx = 0;
-#endif
 	if (unlikely(crtc_idx >= MAX_CRTC)) {
 		DDPPR_ERR("%s invalid crtc_idx %u\n", __func__, crtc_idx);
 		return;
@@ -16634,9 +16494,6 @@ static void mtk_drm_crtc_atomic_begin(struct drm_crtc *crtc,
 			DDPAEE("%s:%d, invalid vblank:%d, crtc:%p\n",
 				__func__, __LINE__,
 				drm_crtc_vblank_get(crtc), crtc);
-#ifdef OPLUS_TRACKPOINT_REPORT
-		display_exception_trackpoint_report("DisplayDriverID@@503$$ invalid vblank:%d", drm_crtc_vblank_get(crtc));
-#endif
 		mtk_crtc->event = mtk_crtc_state->base.event;
 		mtk_crtc_state->base.event = NULL;
 	}
@@ -16835,32 +16692,7 @@ static void mtk_drm_crtc_atomic_begin(struct drm_crtc *crtc,
 				else if(--debounce == 1) {
 					DDPMSG("disp_mode_changed(1->0->0->0) enable vidle\n");
 
-#ifdef OPLUS_FEATURE_DISPLAY
-					mode_idx = mtk_crtc->mode_idx;
-					adjust_mode = &(mtk_crtc->avail_modes[mode_idx]);
-					cur_fps = drm_mode_vrefresh(adjust_mode);
-					if (is_ac180 == 1) {
-						if (crtc->state->mode.hskew == OPLUS_ADFR || crtc->state->mode.hskew == OPLUS_MFR ||
-							mtk_crtc_state->prop_val[CRTC_PROP_DOZE_ACTIVE]) {
-							DDPINFO("%s ac180 oa aod close vidle\n", __func__);
-							mtk_vidle_config_ff(false);
-						} else {
-							DDPINFO("%s ac180 open vidle\n", __func__);
-							mtk_vidle_config_ff(true);
-						}
-					} else {
-						if (crtc->state->mode.hskew == OPLUS_ADFR || crtc->state->mode.hskew == OPLUS_MFR ||
-							mtk_crtc_state->prop_val[CRTC_PROP_DOZE_ACTIVE] || cur_fps == 60 || cur_fps == 90) {
-							DDPINFO("%s oa aod 60&90 close vidle\n", __func__);
-							mtk_vidle_config_ff(false);
-						} else {
-							DDPINFO("%s open vidle\n", __func__);
-							mtk_vidle_config_ff(true);
-						}
-					}
-#else
 			mtk_vidle_config_ff(true);
-#endif
 				} else if (debounce == 0)
 					mtk_vidle_user_power_release_by_gce(DISP_VIDLE_USER_DISP_DPC_CFG, mtk_crtc_state->cmdq_handle);
 			} else {
@@ -16871,12 +16703,6 @@ static void mtk_drm_crtc_atomic_begin(struct drm_crtc *crtc,
 	}
 
 #endif
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-	if (!(oplus_apollo_unsupported())) {
-		oplus_sync_panel_brightness(crtc);
-		oplus_update_apollo_para(crtc);
-	}
-#endif /* OPLUS_FEATURE_DISPLAY_APOLLO */
 	if ((priv->usage[crtc_idx] == DISP_OPENING) &&
 		comp && mtk_ddp_comp_get_type(comp->id) == MTK_DISP_WDMA)
 		goto end;
@@ -17683,42 +17509,6 @@ static void mtk_crtc_backup_color_matrix_data(struct drm_crtc *crtc,
 	}
 }
 #endif
-#ifdef OPLUS_FEATURE_DISPLAY
-static int update_ccorr_matrix(struct mtk_ddp_comp *comp, struct cmdq_pkt *cmdq_handle,
-		struct disp_ccorr_config *ccorr_config, struct mtk_drm_crtc *mtk_crtc,
-		bool linear){
-	int set = 0;
-	if (((ccorr_config->color_matrix[1] != 0) || (ccorr_config->color_matrix[2] != 0)
-				|| (ccorr_config->color_matrix[4] != 0) || (ccorr_config->color_matrix[6] != 0)
-				|| (ccorr_config->color_matrix[8] != 0) || (ccorr_config->color_matrix[9] != 0))
-			&& ((ccorr_config->color_matrix[12] != 0) || (ccorr_config->color_matrix[13] != 0)
-				|| (ccorr_config->color_matrix[14] != 0))) {
-		dl_color_flag = false;
-		dl_rgb_flag = true;
-		disp_set_dl_default_color_matrix(comp);
-		set = disp_ccorr_set_color_matrix(comp, cmdq_handle,
-				ccorr_config->color_matrix, ccorr_config->mode,
-				ccorr_config->featureFlag, linear);
-		dl_ccorr_flag = true;
-	} else if (dl_ccorr_flag == true) {
-		dl_color_flag = true;
-		disp_set_dl_default_color_matrix(comp);
-		set = disp_ccorr_set_color_matrix(comp, cmdq_handle,
-				ccorr_config->color_matrix, ccorr_config->mode,
-				ccorr_config->featureFlag, linear);
-		disp_ccorr_set_RGB_matrix(comp, cmdq_handle, ccorr_config->color_matrix,false);
-		disp_ccorr_set_RGB_matrix(comp, cmdq_handle, ccorr_config->color_matrix,true);
-		if(comp->id == DDP_COMPONENT_CCORR1){
-			dl_ccorr_flag = false;
-		}
-	} else {
-		disp_ccorr_set_RGB_matrix(comp, cmdq_handle, ccorr_config->color_matrix,true);
-	}
-
-	set = true;
-	return set;
-}
-#endif /* OPLUS_FEATURE_DISPLAY */
 
 static void mtk_crtc_dl_config_color_matrix(struct drm_crtc *crtc,
 		struct disp_ccorr_config *ccorr_config,
@@ -17737,25 +17527,6 @@ static void mtk_crtc_dl_config_color_matrix(struct drm_crtc *crtc,
 		return;
 
 	linear = state->prop_val[CRTC_PROP_AOSP_CCORR_LINEAR];
-#ifdef OPLUS_FEATURE_DISPLAY
-	if (mtk_crtc->panel_ext && mtk_crtc->panel_ext->params
-			&& mtk_crtc->panel_ext->params->oplus_panel_use_rgb_gain) {
-		for_each_comp_in_crtc_target_path(comp, mtk_crtc, i, DDP_FIRST_PATH) {
-			if (comp->id == DDP_COMPONENT_CCORR0) {
-				set = update_ccorr_matrix(comp, cmdq_handle, ccorr_config, mtk_crtc, linear);
-				break;
-			}
-		}
-
-		i = 0;
-		for_each_comp_in_crtc_target_path(comp, mtk_crtc, i, DDP_FIRST_PATH) {
-			if (comp->id == DDP_COMPONENT_CCORR1) {
-				set = update_ccorr_matrix(comp, cmdq_handle, ccorr_config, mtk_crtc, linear);
-				break;
-			}
-		}
-	} else {
-#endif /* OPLUS_FEATURE_DISPLAY */
 		for_each_comp_in_crtc_target_path(comp, mtk_crtc, i, DDP_FIRST_PATH) {
 			if (mtk_ddp_comp_get_type(comp->id) == MTK_DISP_CCORR) {
 				set = disp_ccorr_set_color_matrix(comp, cmdq_handle,
@@ -17765,9 +17536,6 @@ static void mtk_crtc_dl_config_color_matrix(struct drm_crtc *crtc,
 					continue;
 			}
 		}
-#ifdef OPLUS_FEATURE_DISPLAY
-	}
-#endif /* OPLUS_FEATURE_DISPLAY */
 
 #ifdef IF_ZERO /* not ready for dummy register method */
 	if (!set)
@@ -19002,17 +18770,6 @@ int mtk_drm_crtc_set_partial_update(struct drm_crtc *crtc,
 		partial_roi.x, partial_roi.y, partial_roi.width,
 		partial_roi.height, enable, partial_enable);
 
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-	if (mtk_crtc->oplus_apollo_br) {
-		if (enable && partial_enable) {
-			mtk_crtc->oplus_apollo_br->pending_pu_enable = 1;
-		} else {
-			mtk_crtc->oplus_apollo_br->pending_pu_enable = 0;
-		}
-		mtk_crtc->oplus_apollo_br->pending_h_roi = partial_roi.height;
-	}
-#endif
-
 	CRTC_MMP_MARK(0, pu_final_roi,
 		partial_roi.y << 16 | partial_roi.height,
 		enable << 16 | partial_enable);
@@ -19344,13 +19101,8 @@ static void msync_cmdq_cb(struct cmdq_cb_data data)
 	kfree(cb_data);
 }
 
-#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
-void mtk_atomic_hbm_bypass_pq(struct drm_crtc *crtc,
-		struct cmdq_pkt *handle, int en)
-#else
 static void mtk_atomic_hbm_bypass_pq(struct drm_crtc *crtc,
 		struct cmdq_pkt *handle, int en)
-#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
 {
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	struct mtk_ddp_comp *comp;
@@ -19458,19 +19210,6 @@ static void mtk_drm_crtc_atomic_flush(struct drm_crtc *crtc,
 	if (pending_planes)
 		mtk_crtc->pending_planes = true;
 
-#ifdef OPLUS_FEATURE_DISPLAY
-	g_commit_pid = current->tgid;
-#endif /* OPLUS_FEATURE_DISPLAY */
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-	oplus_adfr_handle_idle_mode(crtc, false);
-#endif
-
-#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
-	if (oplus_ofp_is_supported() && (index == 0)) {
-		oplus_ofp_hbm_handle(crtc, mtk_crtc_state, cmdq_handle);
-		oplus_ofp_aod_off_backlight_recovery(crtc, mtk_crtc_state, cmdq_handle);
-	}
-#else
 	if (mtk_drm_helper_get_opt(priv->helper_opt, MTK_DRM_OPT_HBM)) {
 		bool hbm_en = false;
 
@@ -19481,7 +19220,6 @@ static void mtk_drm_crtc_atomic_flush(struct drm_crtc *crtc,
 		if (!mtk_crtc_state->prop_val[CRTC_PROP_DOZE_ACTIVE])
 			mtk_atomic_hbm_bypass_pq(crtc, cmdq_handle, hbm_en);
 	}
-#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
 
 	hdr_en = (bool)mtk_crtc_state->prop_val[CRTC_PROP_HDR_ENABLE];
 
@@ -19789,11 +19527,6 @@ static void mtk_drm_crtc_atomic_flush(struct drm_crtc *crtc,
 	}
 
 end:
-#ifdef OPLUS_FEATURE_DISPLAY_APOLLO
-	if (mtk_crtc->oplus_apollo_br && (mtk_crtc->oplus_apollo_br->oplus_backlight_updated != NULL)) {
-		mtk_crtc->oplus_apollo_br->oplus_backlight_updated = false;
-	}
-#endif /* OPLUS_FEATURE_DISPLAY_APOLLO */
 #ifdef DRM_CMDQ_DISABLE
 	trigger_without_cmdq(crtc);
 #endif
@@ -20632,12 +20365,6 @@ static int mtk_drm_mode_switch_thread(void *data)
 	struct mtk_ddp_comp *output_comp;
     struct cmdq_pkt *handle = NULL;
 
-#ifdef OPLUS_FEATURE_DISPLAY
-	struct drm_display_mode *adjust_mode;
-	unsigned int cur_fps = 0;
-	int mode_idx = 0;
-#endif
-
 	struct sched_param param = {.sched_priority = 87};
 
 	sched_setscheduler(current, SCHED_RR, &param);
@@ -20665,56 +20392,6 @@ static int mtk_drm_mode_switch_thread(void *data)
 
 		CRTC_MMP_MARK((int) drm_crtc_index(crtc), mode_switch, 1, 1);
 
-#ifdef OPLUS_FEATURE_DISPLAY
-		mode_idx = mtk_crtc->mode_idx;
-		adjust_mode = &(mtk_crtc->avail_modes[mode_idx]);
-		cur_fps = drm_mode_vrefresh(adjust_mode);
-		pr_err("mtk_drm_mode_switch_thread ac180=%d\n",is_ac180);
-		if (is_ac180 == 1) {
-			if (crtc->state->mode.hskew == OPLUS_ADFR || crtc->state->mode.hskew == OPLUS_MFR) {
-				DDPMSG("mode_switch close vidle\n");
-				mtk_vidle_config_ff(false);
-			} else {
-				DDPMSG("mode_switch close 19898 vidle\n");
-				//mtk_vidle_config_ff(true);
-			}
-		} else {
-			if (crtc->state->mode.hskew == OPLUS_ADFR || crtc->state->mode.hskew == OPLUS_MFR ||
-				cur_fps == 60 || cur_fps == 90) {
-				DDPMSG("mode_switch 60&90 close vidle\n");
-				mtk_vidle_config_ff(false);
-			} else {
-				DDPMSG("mode_switch close 19907 vidle\n");
-				//mtk_vidle_config_ff(true);
-			}
-		}
-		if (mtk_crtc_with_trigger_loop(crtc) && mtk_crtc_with_event_loop(crtc) &&
-				mtk_crtc_is_frame_trigger_mode(crtc)) {
-			mtk_crtc_pkt_create(&handle, crtc,
-				mtk_crtc->gce_obj.client[CLIENT_CFG]);
-			cmdq_pkt_wait_no_clear(handle,
-				mtk_crtc->gce_obj.event[EVENT_STREAM_EOF]);
-			cmdq_pkt_clear_event(handle,
-				mtk_crtc->gce_obj.event[EVENT_STREAM_BLOCK]);
-			cmdq_pkt_flush(handle);
-			cmdq_pkt_destroy(handle);
-			handle = NULL;
-
-			mtk_crtc_stop_trig_loop(crtc);
-			mtk_crtc_stop_event_loop(crtc);
-
-			mtk_crtc_skip_merge_trigger(mtk_crtc);
-
-			mtk_crtc_start_event_loop(crtc);
-			mtk_crtc_start_trig_loop(crtc);
-			mtk_crtc_pkt_create(&handle, crtc, mtk_crtc->gce_obj.client[CLIENT_CFG]);
-			cmdq_pkt_set_event(handle, mtk_crtc->gce_obj.event[EVENT_STREAM_BLOCK]);
-			cmdq_pkt_flush(handle);
-			cmdq_pkt_destroy(handle);
-			handle = NULL;
-			CRTC_MMP_MARK((int) drm_crtc_index(crtc), mode_switch, 1, 4);
-		}
-#else
 		if (mtk_crtc_with_event_loop(crtc) &&
 				mtk_crtc_is_frame_trigger_mode(crtc)) {
 			mtk_crtc_stop_event_loop(crtc);
@@ -20723,7 +20400,6 @@ static int mtk_drm_mode_switch_thread(void *data)
 
 			mtk_crtc_start_event_loop(crtc);
 		}
-#endif
 
 		/* TODO: set proper DT with corresponding CRTC */
 		if (drm_crtc_index(crtc) == 0)
@@ -24222,202 +23898,6 @@ void mtk_addon_get_module(const enum addon_scenario scn,
 
 	*addon_module_dual = &addon_data_dual->module_data[0];
 }
-
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-void lcm_cmd_cmdq_cb(struct cmdq_cb_data data)
-{
-	struct mtk_cmdq_cb_data *cb_data = data.data;
-	DDPINFO("%s\n", __func__);
-
-	if (cb_data->misc == 3) {
-		OPLUS_ADFR_TRACE_INT("fftimer_end|%d", 1);
-		OPLUS_ADFR_TRACE_INT("fftimer_end|%d", 0);
-	} else if (cb_data->misc == 2) {
-		OPLUS_ADFR_TRACE_INT("ff_end|%d", 1);
-		OPLUS_ADFR_TRACE_INT("ff_end|%d", 0);
-	} else if (cb_data->misc == 4) {
-		OPLUS_ADFR_TRACE_INT("automode_end|%d", 1);
-		OPLUS_ADFR_TRACE_INT("automode_end|%d", 0);
-	} else if (cb_data->misc == 5) {
-		OPLUS_ADFR_TRACE_INT("oplus_minfpsend|%d", 1);
-		OPLUS_ADFR_TRACE_INT("oplus_minfpsend|%d", 0);
-	} else if (cb_data->misc == 6) {
-		OPLUS_ADFR_TRACE_INT("oplus_multiteend|%d", 1);
-		OPLUS_ADFR_TRACE_INT("oplus_multiteend|%d", 0);
-	}
-
-	cmdq_pkt_destroy(cb_data->cmdq_handle);
-	kfree(cb_data);
-}
-#endif /* OPLUS_FEATURE_DISPLAY_ADFR */
-
-#ifdef OPLUS_FEATURE_DISPLAY
-void mtk_drm_send_lcm_cmd_prepare(struct drm_crtc *crtc, struct cmdq_pkt **cmdq_handle)
-{
-	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-	bool is_frame_mode;
-
-	mtk_drm_idlemgr_kick(__func__, crtc, 0);
-
-
-	is_frame_mode = mtk_crtc_is_frame_trigger_mode(&mtk_crtc->base);
-
-	if (is_frame_mode) {
-		if (atomic_read(&mtk_crtc->singal_for_mode_switch)) {
-			 DDPINFO("%s:Wait event from mode_switch\n", __func__);
-			 CRTC_MMP_MARK((int) drm_crtc_index(crtc), mode_switch, 3, 0);
-		     wait_event_interruptible(mtk_crtc->mode_switch_end_wq,
-				(atomic_read(&mtk_crtc->singal_for_mode_switch) == 0));
-		}
-
-		*cmdq_handle = cmdq_pkt_create(mtk_crtc->gce_obj.client[CLIENT_CFG]);
-
-		if (mtk_crtc_with_sub_path(crtc, mtk_crtc->ddp_mode))
-			mtk_crtc_wait_frame_done(mtk_crtc, *cmdq_handle,
-				DDP_SECOND_PATH,0);
-		else
-			mtk_crtc_wait_frame_done(mtk_crtc, *cmdq_handle,
-				DDP_FIRST_PATH,0);
-
-		cmdq_pkt_clear_event(*cmdq_handle,
-			mtk_crtc->gce_obj.event[EVENT_STREAM_BLOCK]);
-		cmdq_pkt_wfe(*cmdq_handle,
-			     mtk_crtc->gce_obj.event[EVENT_CABC_EOF]);
-
-	} else {
-		*cmdq_handle = cmdq_pkt_create(mtk_crtc->gce_obj.client[CLIENT_DSI_CFG]);
-
-		if (mtk_crtc_with_sub_path(crtc, mtk_crtc->ddp_mode))
-			mtk_crtc_wait_frame_done(mtk_crtc, *cmdq_handle,
-				DDP_SECOND_PATH,0);
-		else
-			mtk_crtc_wait_frame_done(mtk_crtc, *cmdq_handle,
-				DDP_FIRST_PATH,0);
-	}
-	(*cmdq_handle)->err_cb.cb = mtk_crtc_cmdq_timeout_cb;
-	(*cmdq_handle)->err_cb.data = crtc;
-}
-
-void mtk_drm_send_lcm_cmd_flush(struct drm_crtc *crtc,
-	struct cmdq_pkt **cmdq_handle, bool sync)
-{
-	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-	bool is_frame_mode;
-	struct mtk_cmdq_cb_data *cb_data;
-
-	is_frame_mode = mtk_crtc_is_frame_trigger_mode(&mtk_crtc->base);
-
-	if (is_frame_mode) {
-		cmdq_pkt_set_event(*cmdq_handle,
-			mtk_crtc->gce_obj.event[EVENT_CABC_EOF]);
-		cmdq_pkt_set_event(*cmdq_handle,
-			mtk_crtc->gce_obj.event[EVENT_STREAM_BLOCK]);
-	}
-
-	if (sync) {
-		cmdq_pkt_flush(*cmdq_handle);
-		cmdq_pkt_destroy(*cmdq_handle);
-	} else {
-		cb_data = kmalloc(sizeof(*cb_data), GFP_KERNEL);
-		if (cb_data) {
-			cb_data->cmdq_handle = *cmdq_handle;
-			cmdq_pkt_flush_threaded(*cmdq_handle, lcm_cmd_cmdq_cb, cb_data);
-		} else {
-			DDPPR_ERR("%s cb data create failed, sync flush instead...\n", __func__);
-			cmdq_pkt_flush(*cmdq_handle);
-			cmdq_pkt_destroy(*cmdq_handle);
-		}
-	}
-
-}
-
-void mtk_drm_send_lcm_cmd_prepare_wait_for_vsync(struct drm_crtc *crtc, struct cmdq_pkt **cmdq_handle)
-{
-	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-	bool is_frame_mode;
-
-	mtk_drm_idlemgr_kick(__func__, crtc, 0);
-
-
-	is_frame_mode = mtk_crtc_is_frame_trigger_mode(&mtk_crtc->base);
-
-	if (is_frame_mode) {
-		if (atomic_read(&mtk_crtc->singal_for_mode_switch)) {
-			DDPINFO("%s:Wait event from mode_switch\n", __func__);
-			CRTC_MMP_MARK((int) drm_crtc_index(crtc), mode_switch, 3, 0);
-			wait_event_interruptible(mtk_crtc->mode_switch_end_wq,
-				(atomic_read(&mtk_crtc->singal_for_mode_switch) == 0));
-		}
-
-		*cmdq_handle = cmdq_pkt_create(mtk_crtc->gce_obj.client[CLIENT_CFG]);
-
-		if (mtk_crtc_with_sub_path(crtc, mtk_crtc->ddp_mode))
-			mtk_crtc_wait_frame_done(mtk_crtc, *cmdq_handle,
-				DDP_SECOND_PATH,0);
-		else
-			mtk_crtc_wait_frame_done(mtk_crtc, *cmdq_handle,
-				DDP_FIRST_PATH,0);
-
-		cmdq_pkt_clear_event(*cmdq_handle,
-				     mtk_crtc->gce_obj.event[EVENT_TE]);
-		if (mtk_drm_lcm_is_connect(mtk_crtc))
-			cmdq_pkt_wfe(*cmdq_handle,
-					 mtk_crtc->gce_obj.event[EVENT_TE]);
-
-		cmdq_pkt_clear_event(*cmdq_handle,
-			mtk_crtc->gce_obj.event[EVENT_STREAM_BLOCK]);
-		cmdq_pkt_wfe(*cmdq_handle,
-			     mtk_crtc->gce_obj.event[EVENT_CABC_EOF]);
-
-	} else {
-		*cmdq_handle = cmdq_pkt_create(mtk_crtc->gce_obj.client[CLIENT_DSI_CFG]);
-
-		if (mtk_crtc_with_sub_path(crtc, mtk_crtc->ddp_mode))
-			mtk_crtc_wait_frame_done(mtk_crtc, *cmdq_handle,
-				DDP_SECOND_PATH,0);
-		else
-			mtk_crtc_wait_frame_done(mtk_crtc, *cmdq_handle,
-				DDP_FIRST_PATH,0);
-	}
-	(*cmdq_handle)->err_cb.cb = mtk_crtc_cmdq_timeout_cb;
-	(*cmdq_handle)->err_cb.data = crtc;
-}
-
-int oplus_mtk_drm_setcabc(struct drm_crtc *crtc, unsigned int cabc_mode)
-{
-	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-	struct cmdq_pkt *cmdq_handle;
-	struct mtk_ddp_comp *comp = mtk_ddp_comp_request_output(mtk_crtc);
-
-	mutex_lock(&mtk_crtc->lock);
-
-	if (!mtk_crtc->enabled)
-		goto done;
-
-	mtk_drm_send_lcm_cmd_prepare(crtc, &cmdq_handle);
-
-	/* set hbm */
-	if (comp && comp->funcs && comp->funcs->io_cmd)
-		comp->funcs->io_cmd(comp, cmdq_handle, LCM_CABC, &cabc_mode);
-
-	mtk_drm_send_lcm_cmd_flush(crtc, &cmdq_handle, 0);
-done:
-	mutex_unlock(&mtk_crtc->lock);
-
-	return 0;
-}
-
-bool mtk_crtc_is_event_loop_active(struct mtk_drm_crtc *mtk_crtc)
-{
-	if (mtk_crtc->pre_te_cfg.prefetch_te_en == true ||
-		mtk_crtc->pre_te_cfg.merge_trigger_en == true ||
-		mtk_crtc->pre_te_cfg.vidle_apsrc_off_en == true ||
-		mtk_crtc->pre_te_cfg.vidle_dsi_pll_off_en == true)
-		return true;
-	else
-		return false;
-}
-#endif /* OPLUS_FEATURE_DISPLAY */
 
 /****** Vblank Configure Record Start ******/
 

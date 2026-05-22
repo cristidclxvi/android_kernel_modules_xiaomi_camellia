@@ -88,9 +88,6 @@ struct imgsensor_struct {
 /* SENSOR PRIVATE STRUCT FOR CONSTANT*/
 struct imgsensor_info_struct {
 	kal_uint16 sensor_id;//record sensor id defined in Kd_imgsensor.h
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	kal_uint16 module_id;
-	#endif
 	kal_uint32 checksum_value;		//checksum value for Camera Auto Test
 	struct imgsensor_mode_struct pre;		//preview scenario relative information
 	struct imgsensor_mode_struct cap;		//capture scenario relative information
@@ -161,8 +158,6 @@ extern int iBurstWriteReg(u8 *pData, u32 bytes, u16 i2cId);
 extern int iWriteRegI2CTiming(u8 *a_pSendData, u16 a_sizeSendData, u16 i2cId, u16 timing);
 extern int iReadRegI2CTiming(u8 *a_pSendData, u16 a_sizeSendData, u8 *a_pRecvData, u16 a_sizeRecvData, u16 i2cId, u16 timing);
 extern bool read_3P9_eeprom( kal_uint16 addr, BYTE* data, kal_uint32 size);
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 extern unsigned int brcb032gwz_read_4cell_from_eeprom_s5k3p9sp(char *data);
-#endif
 
 #endif

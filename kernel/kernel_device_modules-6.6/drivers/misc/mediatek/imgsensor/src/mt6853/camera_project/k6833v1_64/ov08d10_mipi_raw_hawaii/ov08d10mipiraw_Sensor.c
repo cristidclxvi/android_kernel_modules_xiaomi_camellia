@@ -30,14 +30,6 @@
 	pr_debug(PFX "[%s] " format, __func__, ##args)
 #define MULTI_WRITE 1
 /* Camera Hardwareinfo */
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#define DEVICE_VERSION_OV08D10     "ov08d10"
-// #define MODULE_ID_OFFSET 0X0000
-static kal_uint8 deviceInfo_register_value = 0x00;
-extern enum IMGSENSOR_RETURN Eeprom_DataInit(
-    enum IMGSENSOR_SENSOR_IDX sensor_idx,
-    kal_uint32 sensorID);
-#endif
 static kal_uint32 streaming_control(kal_bool enable);
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
 static kal_uint32 set_test_pattern_mode(kal_bool enable);

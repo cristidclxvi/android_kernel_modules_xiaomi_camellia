@@ -31,12 +31,6 @@
     pr_debug(PFX "[%s] " format, __func__, ##args)
 #define MULTI_WRITE 0
 /* Camera Hardwareinfo */
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#define DEVICE_VERSION_ALADDIN_OV08D10  "aladdin_ov08d10"
-extern enum IMGSENSOR_RETURN Eeprom_DataInit(
-    enum IMGSENSOR_SENSOR_IDX sensor_idx,
-    kal_uint32 sensorID);
-#endif
 static kal_uint32 streaming_control(kal_bool enable);
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
 static kal_uint32 set_test_pattern_mode(kal_bool enable);
@@ -883,9 +877,6 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 		do {
 		*sensor_id = return_sensor_id() + 11;
 		if (*sensor_id == imgsensor_info.sensor_id) {
-			#ifdef OPLUS_FEATURE_CAMERA_COMMON
-			Eeprom_DataInit(IMGSENSOR_SENSOR_IDX_SUB, *sensor_id);
-			#endif
 			LOG_INF("ALADDIN_OV08D10 get_imgsensor_id success: 0x%x\n", *sensor_id);
 			return ERROR_NONE;
 		}

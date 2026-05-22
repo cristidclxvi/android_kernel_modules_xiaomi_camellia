@@ -39,12 +39,6 @@
 #define LOG_INF(format, args...) pr_info(PFX "[%s] " format, __func__, ##args)
 #define LOG_ERR(format, args...) pr_err(PFX "[%s] " format, __func__, ##args)
 
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#define DEVICE_VERSION_ATOM_S5K5E9YX04  "atom_s5k5e9yx04"
-extern enum IMGSENSOR_RETURN Eeprom_DataInit(
-    enum IMGSENSOR_SENSOR_IDX sensor_idx,
-    kal_uint32 sensorID);
-#endif
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
 static struct imgsensor_info_struct imgsensor_info = {
@@ -1016,9 +1010,6 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 			LOG_INF("atom s5k5e9yx get_imgsensor_id *sensor_id = 0x%x",*sensor_id);
 			if (*sensor_id == ATOM_S5K5E9YX04_SENSOR_ID) {
 				LOG_INF("atom s5k5e9yx i2c write id: 0x%x, sensor id: 0x%x\n", imgsensor.i2c_write_id,*sensor_id);
-				#ifdef OPLUS_FEATURE_CAMERA_COMMON
-				Eeprom_DataInit(IMGSENSOR_SENSOR_IDX_SUB, *sensor_id);
-				#endif
 				return ERROR_NONE;
 			}
 			LOG_INF("atom s5k5e9yx Read sensor id fail, id: 0x%x\n", *sensor_id);

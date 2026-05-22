@@ -32,9 +32,6 @@
 #include "flashlight-core.h"
 #include "flashlight-dt.h"
 #include "flashlight.h"
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#include <soc/oplus/system/oplus_project.h>
-#endif
 
 /* device tree should be defined in flashlight-dt.h */
 #ifndef ALADDIN_DTNAME

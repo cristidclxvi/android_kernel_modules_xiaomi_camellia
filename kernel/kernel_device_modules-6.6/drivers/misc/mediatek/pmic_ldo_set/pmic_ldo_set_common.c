@@ -35,18 +35,12 @@ extern int wl2868c_ldo_2_set_disable(void);
 extern int wl2868c_ldo_set_disable(unsigned int ldo_num);
 extern int wl2868c_voltage_output(unsigned int ldo_num, int vol);
 extern void enable_wl2868c_gpio(int pwr_status);
-#ifdef OPLUS_FEATURE_DISPLAY
-extern int wl2868c_get_register_value(unsigned int ldo_num, int *vol);
-#endif
 struct pmic_ldo_operations{
 	int (*ldo_set_voltage_mv)(unsigned int ldo_num, int set_mv);
 	int (*ldo_2_set_voltage_uv)(unsigned int set_uv);
 	int (*ldo_set_disable)(unsigned int ldo_num);
 	int (*ldo_2_set_disable)(void);
 	void (*enable_gpio)(int pwr_status);
-	#ifdef OPLUS_FEATURE_DISPLAY
-	int (*ldo_get_register_value)(unsigned int ldo_num, int *vol);
-	#endif
 };
 
 static struct pmic_ldo_operations ldo_ops = {};
@@ -75,9 +69,6 @@ int pmic_ldo_get_type(void) {
 			ldo_ops.ldo_set_disable = wl2868c_ldo_set_disable;
 			ldo_ops.ldo_2_set_disable = wl2868c_ldo_2_set_disable;
 			ldo_ops.enable_gpio = enable_wl2868c_gpio;
-			#ifdef OPLUS_FEATURE_DISPLAY
-			ldo_ops.ldo_get_register_value = wl2868c_get_register_value;
-			#endif
 			return 0;
 		} else {
 			pr_err("%s, wl2868 no ok, wl2868 status %d\n", __func__, ret);
@@ -117,37 +108,6 @@ int pmic_ldo_set_voltage_mv(unsigned int ldo_num, int set_mv)
 	return -1;
 }
 EXPORT_SYMBOL(pmic_ldo_set_voltage_mv);
-
-#ifdef OPLUS_FEATURE_DISPLAY
-int pmic_ldo_get_register(unsigned int ldo_num, int *get_mv)
-{
-	int ldo_reg_val = 0;
-	if (NULL == get_mv) {
-		pr_err("%s, param get_mv is null\n", __func__);
-		return -1;
-	}
-
-	if(ldo_type != LDO_UNKNOW) {
-		if (ldo_ops.ldo_get_register_value) {
-			ldo_ops.ldo_get_register_value(ldo_num, &ldo_reg_val);
-			*get_mv = ldo_reg_val;
-			pr_debug("%s, wl2868 ldo val = %d\n", __func__, *get_mv);
-			return 0;
-		}
-	} else {
-		if(!pmic_ldo_get_type()) {
-			if (ldo_ops.ldo_get_register_value) {
-				ldo_ops.ldo_get_register_value(ldo_num, &ldo_reg_val);
-				*get_mv = ldo_reg_val;
-				pr_debug("%s, wl2868 ldo val = %d\n", __func__, *get_mv);
-				return 0;
-			}
-		}
-	}
-	return -1;
-}
-EXPORT_SYMBOL(pmic_ldo_get_register);
-#endif
 
 int pmic_ldo_set_disable(unsigned int ldo_num)
 {

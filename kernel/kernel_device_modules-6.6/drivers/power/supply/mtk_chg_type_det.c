@@ -29,11 +29,6 @@
 
 #define FAST_CHG_WATT		7500000 /* uW */
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
-/*oplus add for charge*/
-extern bool oplus_chg_wake_update_work(void);
-#endif
-
 struct mci_notifier_block {
 	struct notifier_block nb;
 	struct mtk_ctd_info *mci;
@@ -98,10 +93,6 @@ wait:
 						POWER_SUPPLY_PROP_ONLINE, &val);
 		if (ret < 0)
 			dev_notice(mci->dev, "Failed to set online(%d)\n", ret);
-#ifdef OPLUS_FEATURE_CHG_BASIC
-/*oplus add for charge*/
-		oplus_chg_wake_update_work();
-#endif
 	}
 	goto wait;
 out:

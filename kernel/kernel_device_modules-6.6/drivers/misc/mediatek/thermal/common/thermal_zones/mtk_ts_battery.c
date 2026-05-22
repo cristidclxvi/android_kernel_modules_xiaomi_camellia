@@ -374,13 +374,11 @@ struct thermal_cooling_device *cdev, unsigned long state)
 		/* To trigger data abort to reset the system
 		 * for thermal protection.
 		 */
-#ifndef OPLUS_FEATURE_CHG_BASIC
 /* Delete for battery protect */
 		if (get_eng_version() != HIGH_TEMP_AGING)
 			BUG_ON(1);
 		else
 			pr_info("%s should reset but bypass\n", __func__);
-#endif
 	}
 	return 0;
 }

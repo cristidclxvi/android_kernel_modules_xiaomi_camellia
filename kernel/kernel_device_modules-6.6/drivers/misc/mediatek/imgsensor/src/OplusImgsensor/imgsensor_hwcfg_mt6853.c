@@ -2295,10 +2295,6 @@ struct IMGSENSOR_HW_CFG imgsensor_custom_config_20630[] = {
                     {IMGSENSOR_HW_PIN_DVDD,  IMGSENSOR_HW_ID_REGULATOR},
                     //{IMGSENSOR_HW_PIN_PDN,   IMGSENSOR_HW_ID_GPIO},
                     {IMGSENSOR_HW_PIN_RST,   IMGSENSOR_HW_ID_GPIO},
-                    #ifdef OPLUS_FEATURE_CAMERA_COMMON
-                    //{IMGSENSOR_HW_PIN_MIPI_SWITCH_SEL, IMGSENSOR_HW_ID_GPIO},
-                    {IMGSENSOR_HW_PIN_AFVDD, IMGSENSOR_HW_ID_REGULATOR},
-                    #endif
                     {IMGSENSOR_HW_PIN_NONE,  IMGSENSOR_HW_ID_NONE},
             },
     },
@@ -2371,10 +2367,6 @@ struct IMGSENSOR_HW_CFG imgsensor_custom_config_20633[] = {
                     {IMGSENSOR_HW_PIN_DVDD,  IMGSENSOR_HW_ID_REGULATOR},
                     //{IMGSENSOR_HW_PIN_PDN,   IMGSENSOR_HW_ID_GPIO},
                     {IMGSENSOR_HW_PIN_RST,   IMGSENSOR_HW_ID_GPIO},
-                    #ifdef OPLUS_FEATURE_CAMERA_COMMON
-                    //{IMGSENSOR_HW_PIN_MIPI_SWITCH_SEL, IMGSENSOR_HW_ID_GPIO},
-                    {IMGSENSOR_HW_PIN_AFVDD, IMGSENSOR_HW_ID_REGULATOR},
-                    #endif
                     {IMGSENSOR_HW_PIN_NONE,  IMGSENSOR_HW_ID_NONE},
             },
     },

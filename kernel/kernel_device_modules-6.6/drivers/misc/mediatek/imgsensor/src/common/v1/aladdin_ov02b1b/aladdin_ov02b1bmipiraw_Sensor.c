@@ -32,9 +32,7 @@
 //#include "imgsensor_i2c.h"
 #include <soc/oplus/system/oplus_project.h>
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 
 
 #define PFX "aladdin_ov02b1b_camera_sensor"

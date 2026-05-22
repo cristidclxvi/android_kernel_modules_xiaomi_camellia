@@ -194,8 +194,10 @@ static struct stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
 	 JD5516WE4_Release, JD5516WE4_GetFileName, NULL},
 	{1, AFDRV_DW9827AF, DW9827AF_SetI2Cclient, DW9827AF_Ioctl,
 	DW9827AF_Release, DW9827AF_GetFileName, NULL},
-	{1, AFDRV_AK7377AF, AK7377AF_SetI2Cclient, AK7377AF_Ioctl,
-	AK7377AF_Release, AK7377AF_GetFileName, NULL},
+	/* camellia: AK7377AF driver source not in tree, comment out
+		{1, AFDRV_AK7377AF, AK7377AF_SetI2Cclient, AK7377AF_Ioctl,
+		AK7377AF_Release, AK7377AF_GetFileName, NULL},
+	*/
 	{1, AFDRV_AK7316AF, AK7316AF_SetI2Cclient, AK7316AF_Ioctl,
 	AK7316AF_Release, AK7316AF_GetFileName, NULL},
 };
@@ -223,16 +225,6 @@ static struct pinctrl_state *vcamaf_pio_off;
 #define CAMAF_GPIO_OFF "camaf_m1_gpio_off"
 extern int fan53870_cam_ldo_set_voltage(int LDO_NUM, int set_mv);
 extern int fan53870_cam_ldo_disable(int LDO_NUM);
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#if !defined(CONFIG_MACH_MT6765)
-extern int pmic_ldo_set_voltage_mv(unsigned int ldo_num, int set_mv);
-extern int pmic_ldo_set_disable(unsigned int ldo_num);
-extern int pmic_ldo_get_type(void);
-
-#endif
-void Other_AFRegulatorCtrl(int Stage);
-//temp code for Project differentiation
-#endif
 static void camaf_power_init(void)
 {
 	int ret;

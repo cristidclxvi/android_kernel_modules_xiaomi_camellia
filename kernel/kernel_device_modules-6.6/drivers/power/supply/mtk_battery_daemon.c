@@ -19,11 +19,6 @@
 #include <pmic_lbat_service.h>
 #endif
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
-extern int fgauge_is_start;
-extern bool is_fuelgauge_apply(void);
-#endif /*OPLUS_FEATURE_CHG_BASIC*/
-
 static int interpolation(int i1, int b1, int i2, int b2, int i)
 {
 	int ret;
@@ -104,15 +99,8 @@ int gauge_set_nag_en(struct mtk_battery *gm, int nafg_zcv_en)
 	if (gm->disableGM30)
 		return 0;
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
-	if (is_fuelgauge_apply() == true) {
-		if (gm->disable_nafg_int == false)
-			gauge_set_property(gm, GAUGE_PROP_NAFG_EN, nafg_zcv_en);
-	}
-#else
 	if (gm->disable_nafg_int == false)
 		gauge_set_property(gm, GAUGE_PROP_NAFG_EN, nafg_zcv_en);
-#endif
 
 	bm_debug(gm,
 		"%s = %d\n",
@@ -3019,10 +3007,6 @@ static void mtk_battery_daemon_handler(struct mtk_battery *gm, void *nl_data,
 	static int ptim_vbat, ptim_i;
 	int int_value;
 	static int badcmd;
-#ifdef OPLUS_FEATURE_CHG_BASIC
-	struct power_supply *chg_psy = NULL;
-	union power_supply_propval prop;
-#endif
 
 	if (gm == NULL) {
 		bm_err(gm, "[%s]gm is NULL\n", __func__);
@@ -3063,9 +3047,6 @@ static void mtk_battery_daemon_handler(struct mtk_battery *gm, void *nl_data,
 		ret_msg->data_len += sizeof(gm->init_flag);
 		memcpy(ret_msg->data,
 			&gm->init_flag, sizeof(gm->init_flag));
-#ifdef OPLUS_FEATURE_CHG_BASIC
-		fgauge_is_start = 1;
-#endif /* OPLUS_FEATURE_CHG_BASIC */
 		bm_debug(gm,
 			"FG_DAEMON_CMD_GET_INIT_FLAG=%d\n",
 			gm->init_flag);
@@ -3222,26 +3203,10 @@ static void mtk_battery_daemon_handler(struct mtk_battery *gm, void *nl_data,
 	{
 		int is_charger_exist = 0;
 
-#ifndef OPLUS_FEATURE_CHG_BASIC
 		if (gm->bm->bs_data.bat_status == POWER_SUPPLY_STATUS_CHARGING)
 			is_charger_exist = true;
 		else
 			is_charger_exist = false;
-#else
-		chg_psy = devm_power_supply_get_by_phandle(&gm->gauge->pdev->dev,
-						       "charger");
-		if (IS_ERR_OR_NULL(chg_psy)) {
-			bm_err(gm, "%s Couldn't get chg_psy\n", __func__);
-			is_charger_exist = false;
-		} else {
-			power_supply_get_property(chg_psy,
-				POWER_SUPPLY_PROP_ONLINE, &prop);
-			if (prop.intval)
-				is_charger_exist = true;
-			else
-				is_charger_exist = false;
-		}
-#endif /*OPLUS_FEATURE_CHG_BASIC*/
 		ret_msg->data_len += sizeof(is_charger_exist);
 		memcpy(ret_msg->data,
 			&is_charger_exist, sizeof(is_charger_exist));
@@ -3570,13 +3535,11 @@ static void mtk_battery_daemon_handler(struct mtk_battery *gm, void *nl_data,
 		/* charger status need charger API */
 		/* CHR_ERR = -1 */
 		/* CHR_NORMAL = 0 */
-#ifndef OPLUS_FEATURE_CHG_BASIC
 		if (gm->bm->bs_data.bat_status ==
 			POWER_SUPPLY_STATUS_NOT_CHARGING)
 			charger_status = -1;
 		else
 			charger_status = 0;
-#endif
 
 		ret_msg->data_len += sizeof(charger_status);
 		memcpy(ret_msg->data,
@@ -4266,37 +4229,11 @@ static void mtk_battery_daemon_handler(struct mtk_battery *gm, void *nl_data,
 	case FG_DAEMON_CMD_SEND_SD_DATA:
 	case FG_DAEMON_CMD_SEND_DAEMON_DATA:
 	{
-#ifdef OPLUS_FEATURE_CHG_BASIC
-		char *rcv;
-		struct afw_data_param *prcv;
-		struct fgd_cmd_daemon_data param;
-#endif /* OPLUS_FEATURE_CHG_BASIC */
 		fg_daemon_send_data(gm, msg->cmd,
 			&msg->data[0],
 			&ret_msg->data[0], msg->hash);
 		ret_msg->data_len =
 			sizeof(struct afw_data_param);
-#ifdef OPLUS_FEATURE_CHG_BASIC
-		rcv = &msg->data[0];
-		prcv = (struct afw_data_param *)rcv;
-		memcpy(&param, prcv->input, sizeof(struct fgd_cmd_daemon_data));
-
-		gm->prev_batt_fcc = param.quse;
-		gm->prev_batt_remaining_capacity = param.quse /10 * param.soc / 10000;
-
-		bm_err(gm, "FG_DAEMON_CMD_SET_BATTERY_CAPACITY2 = %d %d %d %d %d %d %d %d %d %d %d\n",
-			param.uisoc,
-			param.fg_c_soc,
-			param.fg_v_soc,
-			param.soc,
-			param.fg_c_d0_soc,
-			param.car_c,
-			param.fg_v_d0_soc,
-			param.car_v,
-			param.qmxa_t_0ma,
-			param.quse,
-			param.tmp);
-#endif /* OPLUS_FEATURE_CHG_BASIC */
 	}
 	break;
 	case FG_DAEMON_CMD_SEND_VERSION_CONTROL:
@@ -4655,10 +4592,6 @@ static void mtk_battery_daemon_handler(struct mtk_battery *gm, void *nl_data,
 		prcv = (struct afw_data_param *)rcv;
 		memcpy(&param, prcv->input, sizeof(struct fgd_cmd_param_t_8));
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
-		gm->prev_batt_fcc = param.data[4];
-		gm->prev_batt_remaining_capacity = param.data[4] /10 * param.data[6] / 10000;
-#endif /* OPLUS_FEATURE_CHG_BASIC */
 		bm_err(gm, " FG_DAEMON_CMD_SET_BATTERY_CAPACITY = %d %d %d %d %d %d %d %d %d %d RM:%d\n",
 				param.data[0],
 				param.data[1],
@@ -4836,10 +4769,6 @@ void fg_bat_temp_int_internal(struct mtk_battery *gm)
 	int tmp = 0;
 	int fg_bat_new_ht, fg_bat_new_lt;
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
-	if (is_fuelgauge_apply() == false)
-		return;
-#endif
 	if (gm->disableGM30) {
 		gm->battery_temp = 25;
 		battery_update(gm->bm);

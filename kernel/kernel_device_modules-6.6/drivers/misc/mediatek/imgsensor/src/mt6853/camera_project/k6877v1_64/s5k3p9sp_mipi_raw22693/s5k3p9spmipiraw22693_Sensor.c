@@ -50,13 +50,6 @@ extern enum IMGSENSOR_RETURN Eeprom_DataInit(
             kal_uint32 sensorID);
 
 extern struct CAMERA_DEVICE_INFO gImgEepromInfo;
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#define DEVICE_VERSION_S5k3P9SP     "s5k3p9sp"
-//extern void register_imgsensor_deviceinfo(char *name, char *version, u8 module_id);
-static kal_uint8 deviceInfo_register_value = 0x00;
-static kal_uint32 streaming_control(kal_bool enable);
-#define MODULE_ID_OFFSET 0x0000
-#endif
 
 #define PFX "S5K3P9SP_camera_sensor"
 #define LOG_INF(format,  args...)	pr_debug(PFX "[%s] " format,  __FUNCTION__,  ##args)
@@ -68,9 +61,6 @@ static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
 static struct imgsensor_info_struct imgsensor_info = {
 		.sensor_id = S5K3P9SP_SENSOR_ID22693,
-		#ifdef OPLUS_FEATURE_CAMERA_COMMON
-		.module_id = 0x04,	//0x01 Sunny,0x05 QTEK
-		#endif
 		.checksum_value = 0xffb1ec31,
 
 		.pre = {
@@ -246,211 +236,6 @@ MUINT32  sn_inf_sub_S5K3P9SP[13];
 */
 /*0 flag   1-12 data*/
 /****hope add end****/
-
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-static kal_uint16 read_module_id(void)
-{
-	kal_uint16 get_byte=0;
-	char pusendcmd[2] = {(char)(MODULE_ID_OFFSET >> 8) , (char)(MODULE_ID_OFFSET & 0xFF) };
-	iReadRegI2CTiming(pusendcmd , 2, (u8*)&get_byte,1,0xA2/*EEPROM_READ_ID*/, imgsensor_info.i2c_speed);
-	if (get_byte == 0) {
-		iReadRegI2CTiming(pusendcmd, 2, (u8 *)&get_byte, 1, 0xA8/*EEPROM_READ_ID*/, imgsensor_info.i2c_speed);
-	}
-	return get_byte;
-
-}
-static kal_uint8 gS5k3p9sp_SN[CAMERA_MODULE_SN_LENGTH];
-static void read_eeprom_SN(void)
-{
-	kal_uint16 idx = 0;
-	kal_uint8 *get_byte= &gS5k3p9sp_SN[0];
-	for (idx = 0; idx <CAMERA_MODULE_SN_LENGTH; idx++) {
-		char pusendcmd[2] = {0x00 , (char)((0xE0 + idx) & 0xFF) };
-		iReadRegI2CTiming(pusendcmd , 2, (u8*)&get_byte[idx],1, 0xA8, imgsensor_info.i2c_speed);
-		LOG_INF("gS5k3p9sp_SN[%d]: 0x%x  0x%x\n", idx, get_byte[idx], gS5k3p9sp_SN[idx]);
-	}
-}
-
-#define  CAMERA_MODULE_INFO_LENGTH  (8)
-static kal_uint8 gS5k3p9sp_CamInfo[CAMERA_MODULE_INFO_LENGTH];
-static void read_eeprom_CamInfo(void)
-{
-	kal_uint16 idx = 0;
-	kal_uint8 get_byte[12];
-	for (idx = 0; idx <12; idx++) {
-		char pusendcmd[2] = {0x00 , (char)((0x00 + idx) & 0xFF) };
-		iReadRegI2CTiming(pusendcmd , 2, (u8*)&get_byte[idx],1, 0xA8, imgsensor_info.i2c_speed);
-		LOG_INF("S5k3p9sp_info[%d]: 0x%x\n", idx, get_byte[idx]);
-	}
-
-	gS5k3p9sp_CamInfo[0] = get_byte[0];
-	gS5k3p9sp_CamInfo[1] = get_byte[1];
-	gS5k3p9sp_CamInfo[2] = get_byte[6];
-	gS5k3p9sp_CamInfo[3] = get_byte[7];
-	gS5k3p9sp_CamInfo[4] = get_byte[8];
-	gS5k3p9sp_CamInfo[5] = get_byte[9];
-	gS5k3p9sp_CamInfo[6] = get_byte[10];
-	gS5k3p9sp_CamInfo[7] = get_byte[11];
-}
-
-#define   WRITE_DATA_MAX_LENGTH     (16)
-static kal_int32 table_write_eeprom_30Bytes(kal_uint16 addr, kal_uint8 *para, kal_uint32 len)
-{
-	kal_int32 ret = IMGSENSOR_RETURN_SUCCESS;
-	char pusendcmd[WRITE_DATA_MAX_LENGTH+2];
-	pusendcmd[0] = (char)(addr >> 8);
-	pusendcmd[1] = (char)(addr & 0xFF);
-
-	memcpy(&pusendcmd[2], para, len);
-
-	ret = iBurstWriteReg((kal_uint8 *)pusendcmd , (len + 2), 0xA8);
-
-	return ret;
-}
-
-static kal_uint16 read_cmos_eeprom_8(kal_uint16 addr)
-{
-	kal_uint16 get_byte=0;
-	char pusendcmd[2] = {(char)(addr >> 8) , (char)(addr & 0xFF) };
-	iReadRegI2CTiming(pusendcmd , 2, (u8*)&get_byte, 1, 0xA8, imgsensor_info.i2c_speed);
-	return get_byte;
-}
-
-static kal_int32 write_eeprom_protect(kal_uint16 enable)
-{
-	kal_int32 ret = IMGSENSOR_RETURN_SUCCESS;
-	char pusendcmd[3];
-	pusendcmd[0] = 0x80;
-	pusendcmd[1] = 0x00;
-	if (enable)
-		pusendcmd[2] = 0xE0;
-	else
-		pusendcmd[2] = 0x00;
-
-	ret = iBurstWriteReg((kal_uint8 *)pusendcmd , 3, 0xA8);
-
-	return ret;
-}
-
-static kal_int32 write_Module_data(ACDK_SENSOR_ENGMODE_STEREO_STRUCT * pStereodata)
-{
-	kal_int32  ret = IMGSENSOR_RETURN_SUCCESS;
-
-	kal_uint16 data_length1=S5K3P9S_DUALCAM_CALI_PART_LENGTH;
-	kal_uint16 data_base, data_length;
-	kal_uint16 data_base2=S5K3P9SP_STEREO_START_ADDR2, data_length2;
-	kal_uint32 idx, idy;
-	kal_uint32 idx2, idy2;
-	kal_uint8 *pData;
-	UINT32 i = 0;
-
-	if(pStereodata != NULL) {
-		pr_debug("RENM0 SET_SENSOR_OTP: 0x%x %d 0x%x %d\n",
-                       pStereodata->uSensorId,
-                       pStereodata->uDeviceId,
-                       pStereodata->baseAddr,
-                       pStereodata->dataLength);
-
-		data_base = pStereodata->baseAddr;
-		data_length = pStereodata->dataLength;
-		pData = pStereodata->uData;
-		if ((pStereodata->uSensorId == S5K3P9SP_SENSOR_ID)
-				&& (data_base == S5K3P9SP_STEREO_START_ADDR)
-				&& ((data_length == DUALCAM_CALI_DATA_LENGTH) || (data_length == DUALCAM_CALI_DATA_LENGTH_QCOM_MAIN))) {
-			pr_debug("S5K3P9SP Write: %x %x %x %x %x %x %x %x\n", pData[0], pData[39], pData[40], pData[1556],
-					pData[1557], pData[1558], pData[1559], pData[1560]);
-			data_length2=data_length-data_length1;
-			idx = data_length1/WRITE_DATA_MAX_LENGTH;
-			idy = data_length1%WRITE_DATA_MAX_LENGTH;
-			// close write protect
-			write_eeprom_protect(0);
-			msleep(6);
-			for (i = 0; i < idx; i++ ) {
-				ret = table_write_eeprom_30Bytes((data_base+WRITE_DATA_MAX_LENGTH*i),
-					    &pData[WRITE_DATA_MAX_LENGTH*i], WRITE_DATA_MAX_LENGTH);
-				if (ret != IMGSENSOR_RETURN_SUCCESS) {
-				    pr_err("write_eeprom error: i= %d\n", i);
-					// open write protect
-					write_eeprom_protect(1);
-					msleep(6);
-					return IMGSENSOR_RETURN_ERROR;
-				}
-				msleep(6);
-			}
-			ret = table_write_eeprom_30Bytes((data_base+WRITE_DATA_MAX_LENGTH*idx),
-				      &pData[WRITE_DATA_MAX_LENGTH*idx], idy);
-			//write for part 2
-			data_base=data_base2;
-			idx2 = data_length2/WRITE_DATA_MAX_LENGTH;
-			idy2 = data_length2%WRITE_DATA_MAX_LENGTH;
-			for (i = 0; i < idx2; i++ ) {
-				ret = table_write_eeprom_30Bytes((data_base+WRITE_DATA_MAX_LENGTH*i),
-					    &pData[WRITE_DATA_MAX_LENGTH*i+data_length1], WRITE_DATA_MAX_LENGTH);
-				if (ret != IMGSENSOR_RETURN_SUCCESS) {
-				    pr_err("write_eeprom error: i= %d\n", i);
-					// open write protect
-					write_eeprom_protect(1);
-					msleep(6);
-					return IMGSENSOR_RETURN_ERROR;
-				}
-				msleep(6);
-			}
-			ret = table_write_eeprom_30Bytes((data_base+WRITE_DATA_MAX_LENGTH*idx2),
-				      &pData[WRITE_DATA_MAX_LENGTH*idx2+data_length1], idy2);
-			if (ret != IMGSENSOR_RETURN_SUCCESS) {
-				pr_err("write_eeprom error: idx= %d idy= %d\n", idx2, idy2);
-				// open write protect
-				write_eeprom_protect(1);
-				msleep(6);
-				return IMGSENSOR_RETURN_ERROR;
-			}
-			msleep(6);
-			// open write protect
-			write_eeprom_protect(1);
-			msleep(6);
-            pr_debug("com_0:0x%x\n", read_cmos_eeprom_8(S5K3P9SP_STEREO_START_ADDR));
-			pr_debug("com_39:0x%x\n", read_cmos_eeprom_8(S5K3P9SP_STEREO_START_ADDR+39));
-			pr_debug("innal_40:0x%x\n", read_cmos_eeprom_8(S5K3P9SP_STEREO_START_ADDR+40));
-			pr_debug("innal_1556:0x%x\n", read_cmos_eeprom_8(S5K3P9SP_STEREO_START_ADDR+1556));
-			pr_debug("tail1_1557:0x%x\n", read_cmos_eeprom_8(S5K3P9SP_STEREO_START_ADDR+1557));
-			pr_debug("tail2_1558:0x%x\n", read_cmos_eeprom_8(S5K3P9SP_STEREO_START_ADDR+1558));
-			pr_debug("tail3_1559:0x%x\n", read_cmos_eeprom_8(S5K3P9SP_STEREO_START_ADDR+1559));
-			pr_debug("tail4_1560:0x%x\n", read_cmos_eeprom_8(S5K3P9SP_STEREO_START_ADDR+1560));
-			pr_debug("S5K3P9SPwrite_Module_data Write end\n");
-		}else {
-			pr_err("Invalid Sensor id:0x%x write_gm1 eeprom\n", pStereodata->uSensorId);
-			return IMGSENSOR_RETURN_ERROR;
-		}
-	} else {
-		pr_err("S5K3P9SP write_Module_data pStereodata is null\n");
-		return IMGSENSOR_RETURN_ERROR;
-	}
-	return ret;
-}
-
-#define S5K3P9SP_XTALK_START_ADDR  0x1400
-#define S5K3P9SP_XTALK_DATA_SIZE   2050
-static kal_uint8  s5k3p9sp_data_xtalk[S5K3P9SP_XTALK_DATA_SIZE];
-
-static unsigned int read_4cell_data(char *data)
-{
-	if (data != NULL) {
-		memcpy((void*)(data) , (void*)s5k3p9sp_data_xtalk, S5K3P9SP_XTALK_DATA_SIZE);
-		pr_debug("s5k3p9sp read 4cell data[0]=%d, data[10]=%d, data[100]=%d, data[2049]=%d \n", data[2], data[12], data[102], data[2047]);
-	}
-	return 0;
-}
-
-static void read_4cell_from_eeprom_s5k3p9sp(void)
-{
-	kal_uint16 idx = 2;
-	for (idx =2 ; idx <S5K3P9SP_XTALK_DATA_SIZE ; idx++) {
-		s5k3p9sp_data_xtalk[idx]=read_cmos_eeprom_8(S5K3P9SP_XTALK_START_ADDR+idx);
-	}
-	s5k3p9sp_data_xtalk[0]= 0;
-	s5k3p9sp_data_xtalk[1]= 8;
-}
-#endif
 
 static kal_uint16 read_cmos_sensor_16_16(kal_uint32 addr)
 {
@@ -4555,23 +4340,6 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 			if (*sensor_id == S5K3P9SP_SENSOR_ID) {
 				*sensor_id = imgsensor_info.sensor_id;
 				LOG_INF("i2c write id: 0x%x, sensor id: 0x%x\n", imgsensor.i2c_write_id, *sensor_id);
-				#ifdef OPLUS_FEATURE_CAMERA_COMMON
-				imgsensor_info.module_id = read_module_id();
-				read_eeprom_SN();
-				read_eeprom_CamInfo();
-				LOG_INF("s5k3p9sp_module_id=%d\n",imgsensor_info.module_id);
-				/*
-                                if(deviceInfo_register_value == 0x00){
-					register_imgsensor_deviceinfo("Cam_f", DEVICE_VERSION_S5k3P9SP, imgsensor_info.module_id);
-					deviceInfo_register_value = 0x01;
-				}
-                                */
-				read_4cell_from_eeprom_s5k3p9sp();
-				if (deviceInfo_register_value == 0x00) {
-					Eeprom_DataInit(1, S5K3P9SP_SENSOR_ID22693);
-					deviceInfo_register_value = 0x01;
-				}
-				#endif
 				/*vivo hope  add for CameraEM otp errorcode*/
 				/*
 				LOG_INF("cfx_add:start read eeprom ---vivo_otp_read_when_power_on = %d\n", vivo_otp_read_when_power_on);
@@ -5487,41 +5255,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 			}
 			break;
 
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	case SENSOR_FEATURE_GET_MODULE_INFO:
-		LOG_INF("S5K3P9SP GET_MODULE_CamInfo:%d %d\n", *feature_para_len, *feature_data_32);
-		*(feature_data_32 + 1) = (gS5k3p9sp_CamInfo[1] << 24)
-					| (gS5k3p9sp_CamInfo[0] << 16)
-					| (gS5k3p9sp_CamInfo[3] << 8)
-					| (gS5k3p9sp_CamInfo[2] & 0xFF);
-		*(feature_data_32 + 2) = (gS5k3p9sp_CamInfo[5] << 24)
-					| (gS5k3p9sp_CamInfo[4] << 16)
-					| (gS5k3p9sp_CamInfo[7] << 8)
-					| (gS5k3p9sp_CamInfo[6] & 0xFF);
-		break;
-	case SENSOR_FEATURE_GET_MODULE_SN:
-		LOG_INF("s5k3p9 GET_MODULE_SN:%d %d\n", *feature_para_len, *feature_data_32);
-		if (*feature_data_32 < CAMERA_MODULE_SN_LENGTH/4) {
-			*(feature_data_32 + 1) = (gS5k3p9sp_SN[4*(*feature_data_32) + 3] << 24)
-						| (gS5k3p9sp_SN[4*(*feature_data_32) + 2] << 16)
-						| (gS5k3p9sp_SN[4*(*feature_data_32) + 1] << 8)
-						| (gS5k3p9sp_SN[4*(*feature_data_32)] & 0xFF);
-		}
-		break;
-	case SENSOR_FEATURE_SET_SENSOR_OTP:
-	{
-		kal_int32 ret = IMGSENSOR_RETURN_SUCCESS;
-		LOG_INF("SENSOR_FEATURE_SET_SENSOR_OTP length :%d\n", (UINT32)*feature_para_len);
-		ret = write_Module_data((ACDK_SENSOR_ENGMODE_STEREO_STRUCT *)(feature_para));
-		if (ret == ERROR_NONE)
-			return ERROR_NONE;
-		else
-			return ERROR_MSDK_IS_ACTIVATED;
-	}
-	case SENSOR_FEATURE_GET_OFFSET_TO_START_OF_EXPOSURE:
-		*(MUINT32 *)(uintptr_t)(*(feature_data + 1)) = -2548000;
-		break;
-	#endif
     case SENSOR_FEATURE_GET_PERIOD_BY_SCENARIO:
         switch (*feature_data) {
         case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:
@@ -5607,12 +5340,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 	case SENSOR_FEATURE_CHECK_SENSOR_ID:
 		get_imgsensor_id(feature_return_para_32);
 		break;
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	/*Caohua.Lin@CAmera, modify for different module 20180723*/
-	case SENSOR_FEATURE_CHECK_MODULE_ID:
-		*feature_return_para_32 = imgsensor_info.module_id;
-		break;
-	#endif
 	case SENSOR_FEATURE_SET_AUTO_FLICKER_MODE:
 		set_auto_flicker_mode((BOOL)*feature_data_16,*(feature_data_16+1));
 		break;
@@ -5794,32 +5521,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 			(UINT32)*feature_return_para_32);
 			*feature_para_len = 4;
 		break;
-	#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	case SENSOR_FEATURE_GET_4CELL_DATA:
-		{
-			int type = (kal_uint16)(*feature_data);
-			if (type == FOUR_CELL_CAL_TYPE_ALL) {
-				LOG_INF("SENSOR_FEATURE_GET_4CELL_DATA type=%d\n", type);
-				read_4cell_data((char *)(*(feature_data+1)));
-			} else if (type == FOUR_CELL_CAL_TYPE_GAIN_TBL) {
-				LOG_INF("SENSOR_FEATURE_GET_4CELL_DATA type=%d\n", type);
-				read_4cell_data((char *)(*(feature_data+1)));
-			} else {
-				memset((void *)(*(feature_data+1)), 0, 4);
-				LOG_INF("No type %d buffer on this sensor\n", type);
-			}
-			break;
-		}
-	/* sunxiaohong@Camer. Add for front frame sync. ALPS05053686. 2020-03-24 */
-	case SENSOR_FEATURE_GET_FRAME_CTRL_INFO_BY_SCENARIO:
-		/*
-		 * 1, if driver support new sw frame sync
-		 * set_shutter_frame_length() support third para auto_extend_en
-		 */
-		*(feature_data + 1) = 1; /* margin info by scenario */
-		*(feature_data + 2) = imgsensor_info.margin;
-		break;
-	#endif
 
 	default:
 		break;

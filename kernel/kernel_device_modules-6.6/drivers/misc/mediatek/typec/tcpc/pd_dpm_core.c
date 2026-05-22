@@ -50,13 +50,6 @@ static const struct svdm_svid_ops svdm_svid_ops[] = {
 		.parse_svid_data = dp_parse_svid_data,
 	},
 
-#ifdef OPLUS_FEATURE_CHG_BASIC
-/* add for pd svooc flow */
-	{
-		.name = "Oplus",
-		.svid = USB_VID_OPLUS,
-	},
-#endif
 };
 
 /*

@@ -11,9 +11,6 @@
 #include <SCP_sensorHub.h>
 #include "SCP_power_monitor.h"
 #include <linux/pm_wakeup.h>
-#ifdef OPLUS_FEATURE_SENSOR
-#include "../../oplus_sensor_devinfo/sensor_devinfo.h"
-#endif
 #define REAR_FLICKERHUB_DEV_NAME     "rear_flicker_hub_pl"
 
 struct rear_flickerhub_ipi_data {
@@ -120,11 +117,7 @@ static ssize_t rear_flicker_show(struct device_driver *ddri, char *buf)
 	if (res)
 		return snprintf(buf, PAGE_SIZE, "ERROR: %d\n", res);
 	else
-#ifndef OPLUS_FEATURE_SENSOR
 		return snprintf(buf, PAGE_SIZE, "0x%04X\n", obj->rear_flicker);
-#else
-		return snprintf(buf, PAGE_SIZE, "%u\n", obj->rear_flicker);
-#endif
 }
 
 static ssize_t flickerlv_show(struct device_driver *ddri, char *buf)

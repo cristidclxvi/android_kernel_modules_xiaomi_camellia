@@ -529,10 +529,6 @@ struct mtk_panel_params {
 	unsigned int vfp_low_power;
 	struct dynamic_mipi_params dyn;
 	struct dynamic_fps_params dyn_fps;
-#ifdef OPLUS_FEATURE_DISPLAY
-	bool skip_unnecessary_switch;
-	unsigned int change_fps_by_vfp_send_cmd_need_delay;
-#endif /* OPLUS_FEATURE_DISPLAY */
 	struct mtk_ddic_dsi_cmd send_cmd_to_ddic;
 	unsigned int cust_esd_check;
 	unsigned int esd_check_enable;
@@ -612,60 +608,6 @@ struct mtk_panel_params {
 	bool skip_wait_real_te;	/* 0: wait real te by hwc, 1: skip */
 	unsigned int SilkyBrightnessDelay;
 
-#ifdef OPLUS_FEATURE_DISPLAY
-	unsigned char vendor[32];
-	unsigned char manufacture[32];
-	bool color_vivid_status;
-	bool color_srgb_status;
-	bool color_softiris_status;
-	bool color_dual_panel_status;
-	bool color_dual_brightness_status;
-	bool color_oplus_calibrate_status;
-	bool color_samsung_status;
-	bool color_loading_status;
-	bool color_2nit_status;
-	bool color_nature_profession_status;
-	unsigned int panel_bpp;
-	unsigned int oplus_display_lcd_tp_aod;
-	unsigned int oplus_vidle_te_duration;
-#endif /* OPLUS_FEATURE_DISPLAY */
-
-#ifdef OPLUS_FEATURE_DISPLAY_HPWM
-	unsigned int oplus_hpwm_config;
-#endif /* OPLUS_FEATURE_DISPLAY_HPWM */
-
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-	unsigned int oplus_mode_switch_hs;
-	unsigned int oplus_fakeframe_cfg;
-	unsigned int oplus_fakeframe_deferred_time;
-	unsigned int oplus_autoon_cfg;
-	unsigned int oplus_autooff_cfg;
-	unsigned int oplus_minfps0_cfg;
-	unsigned int oplus_minfps1_cfg;
-	unsigned int oplus_serial_para0;
-	unsigned int oplus_serial_para2;
-#endif /* OPLUS_FEATURE_DISPLAY_ADFR */
-
-#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
-	/* check how many black frames are inserted in aod off cmd flow which will affect hbm on cmd execution time, then calculate delay time to keep apart aod off cmd and hbm on cmd to make sure ui ready is accurate */
-	unsigned int oplus_ofp_aod_off_insert_black;
-	/* check the total time of black frames by oscilloscope, will use it to check whether hbm cmd is sent within black frames */
-	unsigned int oplus_ofp_aod_off_black_frame_total_time;
-	/* 51 backlight cmd will affect hbm on cmd execution time, need to keep apart the backlight cmd before hbm on */
-	bool oplus_ofp_need_keep_apart_backlight;
-	/*
-	 indicates whether need to sync data(dim layer or fingerpress layer) in aod unlocking or not
-	 ps: it will remove all the delay to speed up aod unlocking by default
-	*/
-	bool oplus_ofp_need_to_sync_data_in_aod_unlocking;
-	/* wait for the hbm on take effect after hbm on cmd were sent */
-	unsigned int oplus_ofp_hbm_on_delay;
-	/* do some delay before hbm off cmd if need */
-	unsigned int oplus_ofp_pre_hbm_off_delay;
-	/* wait for the hbm off take effect after hbm off cmd were sent */
-	unsigned int oplus_ofp_hbm_off_delay;
-#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
-
 	bool dual_swap;
 	unsigned int mode_switch_delay;
 
@@ -684,13 +626,6 @@ struct mtk_panel_params {
 #endif
 	/*global dre enable*/
 	unsigned int oplus_display_global_dre;
-#ifdef OPLUS_FEATURE_DISPLAY
-	/*ccorr support gamma*/
-	bool oplus_panel_ccorr_gamma;
-	/*esd check sleep time (ms)*/
-	bool oplus_esd_sleep_status;
-	unsigned int oplus_esd_sleep_ms;
-#endif /* OPLUS_FEATURE_DISPLAY */
 
   	bool oplus_osc_hoping_fps_switch;
   /*#endif*/
@@ -699,9 +634,6 @@ struct mtk_panel_params {
 	unsigned int doze_disable_backlight_flag_enable;
 	unsigned int oplus_display_lcd_6382_aod;
 
-#ifdef OPLUS_FEATURE_DISPLAY
-	bool oplus_panel_use_rgb_gain;
-#endif /* OPLUS_FEATURE_DISPLAY */
 };
 
 struct mtk_panel_ext {
@@ -839,54 +771,8 @@ struct mtk_panel_funcs {
 	int (*cust_funcs)(struct drm_panel *panel,
 		int cmd, void *params, void *handle, void **output);
 	int (*read_panelid)(struct drm_panel *panel, struct mtk_oddmr_panelid *panelid);
-#ifdef OPLUS_FEATURE_DISPLAY
-	int (*panel_poweroff)(struct drm_panel *panel);
-	int (*panel_poweron)(struct drm_panel *panel);
-	int (*panel_reset)(struct drm_panel *panel);
-	int (*oplus_set_power)(uint32_t voltage_id, uint32_t voltage_value);
-	int (*set_seed)(void *dsi_drv, dcs_write_gce_pack cb, void *handle, unsigned int mode);
-	int (*oplus_update_power_value)(uint32_t voltage_id);
-	int (*lcm_osc_change)(void *dsi, dcs_write_gce cb, void *handle, bool en);
-	int (*lcm_high_pwm_set)(struct drm_panel *panel, void *dsi, dcs_write_gce_pack cb, void *handle, bool en_h_pwm);
-	int (*lcm_high_pwm_elvss)(void *dsi, dcs_write_gce_pack cb, void *handle, bool en_h_pwm);
-	int (*lcm_high_pwm_set_fps)(void *dsi, dcs_write_gce_pack cb, void *handle, int fps, bool en_h_pwm);
-	int (*lcm_high_pwm_set_pulse_bl)(void *dsi, dcs_write_gce_pack cb, void *handle, unsigned int bl_lvl);
-	int (*lcm_high_pwm_set_pulse)(void *dsi, dcs_write_gce_pack cb, void *handle, unsigned int enable);
-	int (*lcm_high_pwm_set_onepulse)(void *dsi, dcs_write_gce_pack cb, void *handle, unsigned int cmd);
-	int (*esd_backlight_recovery)(void *dsi_drv, dcs_write_gce cb, void *handle);
-	int (*update_time)(void);
-	int (*lcm_set_hbm_max)(void *dsi, dcs_write_gce_pack cb, void *handle, unsigned int en);
-	int (*lcm_set_pwm_pul)(void *dsi, dcs_write_gce_pack cb, void *handle, unsigned int mode);
-	int (*oplus_set_backlight_cmdq)(void *dsi, dcs_write_gce_pack cb,
-			void *handle, unsigned int level);
-#endif /* OPLUS_FEATURE_DISPLAY */
 
 
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
-	int (*send_fake_fakeframe)(void *dsi_drv, dcs_write_gce_pack cb, void *handle);
-	int (*set_auto_mode)(void *dsi_drv, struct drm_panel *panel, dcs_write_gce_pack cb, void *handle, bool auto_en, struct drm_display_mode *m);
-	int (*set_minfps)(void *dsi_drv, struct drm_panel *panel, dcs_write_gce_pack cb, void *handle, void *minfps, struct drm_display_mode *m);
-	int (*set_multite)(void *dsi_drv, struct drm_panel *panel, dcs_write_gce_pack cb, void *handle, bool enable);
-	int (*get_disp_modeinfo)(struct drm_panel *panel, int mode_id, struct drm_display_mode *modeinfo);
-	/* add for mux switch control */
-	int (*set_vsync_switch)(struct drm_panel *panel, int vsync_mode);
-#endif /* OPLUS_FEATURE_DISPLAY_ADFR */
-
-#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
-	int (*set_hbm)(void *dsi_drv, dcs_write_gce cb, void *handle, unsigned int hbm_mode);
-	int (*oplus_ofp_set_lhbm_pressed_icon)(struct drm_panel *panel, void *dsi_drv, dcs_write_gce_pack cb, void *handle, uint64_t lhbm_pressed_icon_on);
-	int (*oplus_set_aod_light_mode)(void *dsi_drv, dcs_write_gce_pack cb,
-		void *handle, unsigned int mode);
-	int (*oplus_set_ultra_low_power_aod)(struct drm_panel *panel, void *dsi_drv, dcs_write_gce_pack cb,
-		void *handle, unsigned int mode);
-	int (*set_ultra_low_power_aod)(struct drm_panel *panel, void *dsi_drv, dcs_write_gce cb,
-		void *handle, unsigned int mode);
-	int (*oplus_set_hbm)(void *dsi_drv, dcs_write_gce_pack cb, void *handle, unsigned int hbm_mode);
-	int (*oplus_hbm_set_cmdq)(struct drm_panel *panel, void *dsi_drv,
-		    dcs_write_gce_pack cb, void *handle, bool en);
-	int (*oplus_doze_enable)(struct drm_panel *panel, void *dsi_drv, dcs_write_gce_pack cb, void *handle);
-	int (*oplus_doze_disable)(struct drm_panel *panel, void *dsi_drv, dcs_write_gce_pack cb, void *handle);
-#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
 	int (*lcm_update_roi)(struct drm_panel *panel,
 		unsigned int x, unsigned int y,
 		unsigned int w, unsigned int h);
@@ -918,8 +804,4 @@ int mtk_lcm_dsi_ddic_handler(struct mipi_dsi_device *dsi_dev,
 				struct cmdq_pkt *handle,
 				mtk_dsi_ddic_handler_cb handler_cb,
 				struct mtk_lcm_dsi_cmd_packet *packet);
-#ifdef OPLUS_FEATURE_DISPLAY
-void mtk_panel_lock(void);
-void mtk_panel_unlock(void);
-#endif /* OPLUS_FEATURE_DISPLAY */
 #endif
