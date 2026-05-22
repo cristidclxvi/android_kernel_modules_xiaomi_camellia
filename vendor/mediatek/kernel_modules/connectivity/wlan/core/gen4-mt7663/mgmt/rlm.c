@@ -2656,10 +2656,6 @@ static uint8_t rlmRecIeInfoForClient(struct ADAPTER *prAdapter,
 		 * temporarily
 		 */
 		case ELEM_ID_QUIET:
-#if CFG_SUPPORT_QUIET && 0
-			rrmQuietHandleQuietIE(prBssInfo,
-					      (struct IE_QUIET *)pucIE);
-#endif
 			fgHasQuietIE = TRUE;
 			break;
 		default:
@@ -2858,10 +2854,6 @@ static uint8_t rlmRecIeInfoForClient(struct ADAPTER *prAdapter,
 		prBssInfo->ucHtOpInfo1 &=
 			~(HT_OP_INFO1_SCO | HT_OP_INFO1_STA_CHNL_WIDTH);
 	}
-#if CFG_SUPPORT_QUIET && 0
-	if (!fgHasQuietIE)
-		rrmQuietIeNotExist(prAdapter, prBssInfo);
-#endif
 
 	/* Check if OBSS scan process will launch */
 	if (!prAdapter->fgEnOnlineScan || !prObssScnParam ||

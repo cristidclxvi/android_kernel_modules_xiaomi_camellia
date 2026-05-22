@@ -1626,9 +1626,6 @@ static const struct ioctl_entry ioctl_list[] = {
 	{VIDIOC_MTK_S_TG, s_tg},
 	{VIDIOC_MTK_S_SENSOR_SENTEST_CTRL, sentest_ioctl_entry},
 };
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#include "oplus/inc/oplus_adaptor-ioctl.h"
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 long adaptor_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
 	int i, ret = -ENOIOCTLCMD;
@@ -1641,9 +1638,6 @@ long adaptor_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 			break;
 		}
 	}
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	oplus_adaptor_ioctl(sd, cmd, arg, &ret);
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 	return ret;
 }
 

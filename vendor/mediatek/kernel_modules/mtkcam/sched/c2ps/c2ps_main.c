@@ -16,9 +16,7 @@
 #include "c2ps_usedext.h"
 #include "c2ps_sysfs.h"
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
 enum C2PS_NOTIFIER_PUSH_TYPE {
 	C2PS_NOTIFIER_UNINIT            = 0x00,

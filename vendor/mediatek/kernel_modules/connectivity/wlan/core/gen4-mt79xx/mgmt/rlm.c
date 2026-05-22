@@ -3816,9 +3816,6 @@ static uint8_t rlmRecIeInfoForClient(struct ADAPTER *prAdapter,
 	struct IE_OBSS_SCAN_PARAM *prObssScnParam;
 	uint8_t ucERP, ucPrimaryChannel;
 	struct WIFI_VAR *prWifiVar = &prAdapter->rWifiVar;
-#if CFG_SUPPORT_QUIET && 0
-	u_int8_t fgHasQuietIE = FALSE;
-#endif
 	u_int8_t IsfgHtCapChange = FALSE;
 
 #if CFG_SUPPORT_802_11AC
@@ -4369,18 +4366,6 @@ static uint8_t rlmRecIeInfoForClient(struct ADAPTER *prAdapter,
 			break;
 #endif
 
-#if CFG_SUPPORT_QUIET && 0
-		/* Note: RRM code should be moved to independent RRM function by
-		 *       component design rule. But we attach it to RLM
-		 * temporarily
-		 */
-		case ELEM_ID_QUIET:
-			rrmQuietHandleQuietIE(prBssInfo,
-					      (struct IE_QUIET *)pucIE);
-			fgHasQuietIE = TRUE;
-			break;
-#endif
-
 #if (CFG_SUPPORT_802_11AX == 1)
 		case ELEM_ID_RESERVED:
 			if (IE_ID_EXT(pucIE) == ELEM_EXT_ID_HE_CAP)
@@ -4713,11 +4698,6 @@ static uint8_t rlmRecIeInfoForClient(struct ADAPTER *prAdapter,
 		/* Check SAP channel */
 		p2pFuncSwitchSapChannel(prAdapter);
 	}
-
-#if CFG_SUPPORT_QUIET && 0
-	if (!fgHasQuietIE)
-		rrmQuietIeNotExist(prAdapter, prBssInfo);
-#endif
 
 	/* Check if OBSS scan process will launch */
 	if (!prAdapter->fgEnOnlineScan || !prObssScnParam ||

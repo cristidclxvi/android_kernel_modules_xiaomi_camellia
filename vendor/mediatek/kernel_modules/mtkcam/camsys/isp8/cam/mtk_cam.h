@@ -42,9 +42,7 @@
 #include "mtk_cam-hsf-def.h"
 #include "mtk_cam-bwr.h"
 #include "mtk_cam-tuning.h"
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 #define CCD_READY 1
 #define NO_CHECK_RETURN(ret) (void) ret
 
@@ -130,9 +128,6 @@ struct mtk_cam_ctx {
 	struct kthread_worker done_worker;
 	struct task_struct *tuning_task;
 	struct kthread_worker tuning_worker;
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	bool is_ois_compensation;
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 	char str_ae_data[1024];
 
 	struct mtk_cam_device_buf cq_buffer;

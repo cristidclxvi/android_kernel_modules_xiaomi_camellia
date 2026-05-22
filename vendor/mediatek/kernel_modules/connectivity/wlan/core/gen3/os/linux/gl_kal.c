@@ -912,15 +912,6 @@ WLAN_STATUS kalRxIndicateOnePkt(IN P_GLUE_INFO_T prGlueInfo, IN PVOID pvPkt)
 	ASSERT(pvPkt);
 
 	prSkb = pvPkt;
-#if DBG && 0
-	do {
-		PUINT_8 pu4Head = (PUINT_8) &prSkb->cb[0];
-		UINT_32 u4HeadValue = 0;
-
-		kalMemCopy(&u4HeadValue, pu4Head, sizeof(u4HeadValue));
-		DBGLOG(RX, TRACE, "prSkb->head = 0x%p, prSkb->cb = 0x%lx\n", pu4Head, u4HeadValue);
-	} while (0);
-#endif
 
 #if 1
 	bssIdx = GLUE_GET_PKT_BSS_IDX(prSkb);

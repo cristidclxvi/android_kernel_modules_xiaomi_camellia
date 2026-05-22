@@ -780,10 +780,8 @@ mtk_cam_job_initialize_engines(struct mtk_cam_ctx *ctx,
 			}
 			/* the necessity of hw ddren */
 			qof_init_timer_freq(raw);
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 			if (check_qof_support(job))
 				mtk_cam_enable_itc(raw);
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 			initialize(raw, &engine_cb, !is_master, is_srt,
 				get_sensor_interval_us(job));
@@ -1273,15 +1271,8 @@ _stream_on(struct mtk_cam_job *job, bool on)
 	}
 
 	/* ois compensation */
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	if (is_ois_compensation(job))
 		mtk_cam_tuning_init(&job->tuning_param);
-#else /*OPLUS_FEATURE_CAMERA_COMMON*/
-	if (is_ois_compensation(job)) {
-		ctx->is_ois_compensation = 1;
-		mtk_cam_tuning_init(&job->tuning_param);
-	}
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 	/* TODO: separate seninf api to cammux setting and enable */
 	if (job->stream_on_seninf || job->raw_switch)

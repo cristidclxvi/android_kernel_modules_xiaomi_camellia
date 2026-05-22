@@ -2504,13 +2504,6 @@ VOID bowDisconnectLink(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo, IN
 		bowStopping(prAdapter);
 		kalPrint("bowStopping\n");
 		/*Restore TxPower from Short range mode */
-#if CFG_SUPPORT_NVRAM && 0
-		if (kalIsConfigurationExist(prAdapter->prGlueInfo) == TRUE)
-			wlanLoadManufactureData(prAdapter, kalGetConfiguration(prAdapter->prGlueInfo));
-		else
-			DBGLOG(REQ, WARN, "%s: load manufacture data fail\n", __func__);
-
-#endif
 		/*Uninit BoW Interface */
 #if CFG_BOW_SEPARATE_DATA_PATH
 		kalUninitBowDevice(prAdapter->prGlueInfo);

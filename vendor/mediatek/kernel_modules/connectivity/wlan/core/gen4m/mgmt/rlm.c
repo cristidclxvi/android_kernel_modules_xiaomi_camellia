@@ -3179,9 +3179,6 @@ static uint8_t rlmRecIeInfoForClient(struct ADAPTER *prAdapter,
 	struct IE_OBSS_SCAN_PARAM *prObssScnParam;
 	uint8_t ucERP, ucPrimaryChannel;
 	struct WIFI_VAR *prWifiVar = &prAdapter->rWifiVar;
-#if CFG_SUPPORT_QUIET && 0
-	u_int8_t fgHasQuietIE = FALSE;
-#endif
 	u_int8_t IsfgHtCapChange = FALSE;
 
 #if CFG_SUPPORT_RXSMM_ALLOWLIST
@@ -3658,18 +3655,6 @@ static uint8_t rlmRecIeInfoForClient(struct ADAPTER *prAdapter,
 				prSecondaryOffsetIE->ucSecondaryOffset);
 			prCSAParams->eSco = (enum ENUM_CHNL_EXT)
 					prSecondaryOffsetIE->ucSecondaryOffset;
-			break;
-#endif
-
-#if CFG_SUPPORT_QUIET && 0
-		/* Note: RRM code should be moved to independent RRM function by
-		 *       component design rule. But we attach it to RLM
-		 * temporarily
-		 */
-		case ELEM_ID_QUIET:
-			rrmQuietHandleQuietIE(prBssInfo,
-					      (struct IE_QUIET *)pucIE);
-			fgHasQuietIE = TRUE;
 			break;
 #endif
 
@@ -4294,11 +4279,6 @@ static uint8_t rlmRecIeInfoForClient(struct ADAPTER *prAdapter,
 		prBssInfo->ucHtOpInfo1 &=
 			~(HT_OP_INFO1_SCO | HT_OP_INFO1_STA_CHNL_WIDTH);
 	}
-
-#if CFG_SUPPORT_QUIET && 0
-	if (!fgHasQuietIE)
-		rrmQuietIeNotExist(prAdapter, prBssInfo);
-#endif
 
 	/* Check if OBSS scan process will launch */
 	if (!prAdapter->fgEnOnlineScan || !prObssScnParam ||

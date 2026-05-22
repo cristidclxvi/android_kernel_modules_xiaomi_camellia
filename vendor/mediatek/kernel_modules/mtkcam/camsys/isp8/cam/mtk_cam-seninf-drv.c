@@ -43,12 +43,7 @@
 #include "mtk_cam-seninf_control-8.h"
 #include "mtk_cam-seninf-sentest-ioctrl.h"
 #include "mtk_cam-seninf-sentest-ctrl.h"
-#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-#include "oplus_cam_olc_exception.h"
-#endif
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 #if KERNEL_VERSION(6, 6, 0) == LINUX_VERSION_CODE
 #define CSI_POWER_STATE
 #ifdef CSI_POWER_STATE
@@ -4347,10 +4342,6 @@ int mtk_cam_seninf_check_timeout(struct v4l2_subdev *sd, u64 time_after_sof)
 	struct v4l2_subdev *sensor_sd;
 	struct v4l2_ctrl *ctrl;
 
-	#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-	struct olc_params olc_data;
-	#endif
-
 	if (!sd)
 		return -EINVAL;
 
@@ -4394,16 +4385,6 @@ int mtk_cam_seninf_check_timeout(struct v4l2_subdev *sd, u64 time_after_sof)
 		ret,
 		SOF_TIMEOUT_RATIO,
 		val);
-
-	#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-	if (ret == -1) {
-		/*report the exception data to imgsensor module.*/
-		olc_data.frame_time = frame_time;
-		olc_data.time_after_sof = time_after_sof;
-		strncpy(olc_data.name, sd->name, strlen(sd->name));
-		sensor_sd->ops->core->command(sensor_sd, V4L2_CMD_OLC_EVENT, &olc_data);
-	}
-	#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
 	return ret;
 }
@@ -4525,24 +4506,10 @@ int mtk_cam_seninf_dump(struct v4l2_subdev *sd, u32 seq_id, bool force_check,
 
 int mtk_cam_seninf_get_csi_irq_status(struct v4l2_subdev *sd, struct v4l2_ctrl *ctrl)
 {
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	int ret = 0;
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 	struct seninf_ctx *ctx = sd_to_ctx(sd);
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	ret = pm_runtime_get_sync(ctx->dev);
-	if (ret < 0) {
-		dev_info(ctx->dev, "%s pm_runtime_get_sync ret %d\n", __func__, ret);
-		pm_runtime_put_noidle(ctx->dev);
-		return ret;
-	}
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 	ctrl->val  = (g_seninf_ops->_get_csi_irq_status(sd_to_ctx(sd)) & 0x7fff)
 							| (ctx->esd_status_flag << 15);
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	pm_runtime_put_sync(ctx->dev);
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 	ctx->esd_status_flag = 0;
 	dev_info(ctx->dev,"SENINF%d_CSI2_IRQ_STATUS(0x%x)\n", ctx->seninfAsyncIdx, ctrl->val);
 

@@ -70,9 +70,6 @@
 
 void check_current_scenario_id_bound(struct subdrv_ctx *ctx);
 void i2c_table_write(struct subdrv_ctx *ctx, u16 *list, u32 len);
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-u64 ixc_table_rewrite(struct subdrv_ctx *ctx, u16 *list, u32 len);
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 u64 ixc_table_write(struct subdrv_ctx *ctx, u16 *list, u32 len);
 void commit_i2c_buffer(struct subdrv_ctx *ctx);
 void set_i2c_buffer(struct subdrv_ctx *ctx, u16 reg, u16 val);

@@ -53,9 +53,7 @@
 #include "mtk_cam-reg_utils.h"
 #include "iommu_debug.h"
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 static unsigned int debug_sensor_meta_dump = 0;
 module_param(debug_sensor_meta_dump, uint, 0644);
@@ -1465,10 +1463,6 @@ static int mtk_cam_initialize(struct mtk_cam_device *cam)
 	mtk_cam_dvfs_reset_runtime_info(&cam->dvfs);
 
 	WARN_ON(pm_runtime_get_sync(cam->dev));
-
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	mtk_cam_reset_itc(cam);
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 	ret = mtk_cam_power_rproc(cam, 1);
 	if (ret)

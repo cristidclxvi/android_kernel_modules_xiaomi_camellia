@@ -268,11 +268,7 @@ static int copy_event_data(struct mtk_aov *aov_dev,
 		// Copy yuvo1/yuvo2/imgo and etc.
 		memcpy(buffer, (void *)event, sizeof(struct ndd_event));
 	} else {
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-		if (!power_mode && debug_mode == AOV_DEBUG_MODE_DUMP) {
-#else
 		if (!power_mode) {
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 			// Only copy yuvo1/yuvo2/aie/fld/apu out
 			memcpy(buffer, (void *)event, sizeof(struct base_event));
 		} else {
@@ -1305,13 +1301,8 @@ int aov_core_copy(struct mtk_aov *aov_dev, struct aov_dqevent *dequeue)
 		}
 
 		power_mode = atomic_read(&(core_info->power_mode));
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-		if ((debug_mode == AOV_DEBUG_MODE_DUMP && !power_mode) ||
-			(debug_mode == AOV_DEBUG_MODE_NDD)) {
-#else
 		if ((debug_mode == AOV_DEBUG_MODE_DUMP) ||
 			(debug_mode == AOV_DEBUG_MODE_NDD) || (!power_mode)) {
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 			// Setup yuvo1 stride
 			put_user(event->yuvo1_width, (uint32_t *)((uintptr_t)dequeue +
 				offsetof(struct aov_dqevent, yuvo1_width)));

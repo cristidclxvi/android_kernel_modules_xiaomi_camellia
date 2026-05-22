@@ -71,11 +71,6 @@ int adaptor_ixc_wr_seq_p8(struct i3c_i2c_device *client,
 int adaptor_ixc_wr_regs_u8(struct i3c_i2c_device *client,
 		u16 addr, u16 *list, u32 len);
 
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-int adaptor_ixc_wr_regs_u8_max(struct i3c_i2c_device *client,
-		u16 addr, u16 *list, u32 len);
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
-
 int adaptor_ixc_wr_regs_u16(struct i3c_i2c_device *client,
 		u16 addr, u16 *list, u32 len);
 

@@ -134,9 +134,6 @@ const struct TXPWR_LIMIT_SAR_T g_aucSarTableAuxiliaryAnt[CFG_MAX_SAR_TABLE_SIZE]
 *                   F U N C T I O N   D E C L A R A T I O N S
 *******************************************************************************
 */
-#if DBG && 0
-static VOID SetRCID(BOOLEAN fgOneTb3, BOOL *fgRCID);
-#endif
 
 #if CFG_SLT_SUPPORT
 static VOID SetTestChannel(UINT_8 *pucPrimaryChannel);
@@ -156,16 +153,6 @@ static BOOLEAN IsBufferedStatisticsUsable(P_ADAPTER_T prAdapter)
 		return TRUE;
 	else
 		return FALSE;
-}
-#endif
-
-#if DBG && 0
-static VOID SetRCID(BOOLEAN fgOneTb3, BOOL *fgRCID)
-{
-	if (fgOneTb3)
-		*fgRCID = 0;
-	else
-		*fgRCID = 1;
 }
 #endif
 
@@ -2558,99 +2545,6 @@ wlanoidSetAddKey(IN P_ADAPTER_T prAdapter, IN PVOID pvSetBuffer, IN UINT_32 u4Se
 				prBssInfo->ucCurrentGtkId = prCmdKey->ucKeyId;
 			}
 		}
-#if DBG && 0
-		if (prCmdKey->ucWlanIndex < WTBL_SIZE) {
-			UINT_8 entry = prCmdKey->ucWlanIndex;
-			P_HAL_WTBL_SEC_CONFIG_T prWtblCfg;
-			BOOLEAN fgOneTb3 = FALSE;
-
-			/* ASSERT(prWlanTable[prCmdKey->ucWlanIndex].ucUsed == TRUE); */
-			/* prWlanTable[prCmdKey->ucWlanIndex].ucBssIndex = prCmdKey->ucBssIdx; */
-			/* prWlanTable[prCmdKey->ucWlanIndex].ucKeyId = prCmdKey->ucKeyId; */
-			/* kalMemCopy(prWlanTable[prCmdKey->ucWlanIndex].aucMacAddr, */
-			/* prCmdKey->aucPeerAddr, */
-			/* MAC_ADDR_LEN); */
-
-			prWtblCfg = prAdapter->rWifiVar.arWtblCfg;
-
-			if (prCmdKey->ucAlgorithmId == CIPHER_SUITE_WEP40
-			    || prCmdKey->ucAlgorithmId == CIPHER_SUITE_WEP104
-			    || prCmdKey->ucAlgorithmId == CIPHER_SUITE_WEP128
-			    || prCmdKey->ucAlgorithmId == CIPHER_SUITE_WPI)
-				fgOneTb3 = TRUE;
-
-			if (prCmdKey->ucTxKey) {
-				if (prStaRec) {
-					prWtblCfg[entry].fgRCA2 = 1;
-					prWtblCfg[entry].fgRV = 1;
-					prWtblCfg[entry].fgIKV = 0;
-					prWtblCfg[entry].fgRKV = 1;
-					if (fgOneTb3)
-						prWtblCfg[entry].fgRCID = 0;
-					else
-						prWtblCfg[entry].fgRCID = 1;
-					prWtblCfg[entry].ucKeyID = prCmdKey->ucKeyId;
-					prWtblCfg[entry].fgRCA1 = 1;
-#if 0
-					if (prCmdKey->ucIsAuthenticator)
-						prWtblCfg[entry].fgEvenPN = 0;
-					else
-#endif
-						prWtblCfg[entry].fgEvenPN = 1;
-					prWtblCfg[entry].ucMUARIdx = 0x00;	/* Omac */
-				} else {
-#if 0
-					if (prCmdKey->ucIsAuthenticator) {
-						prWtblCfg[entry].fgRCA2 = 0;
-						prWtblCfg[entry].fgRV = 0;
-						prWtblCfg[entry].fgIKV = 0;
-						prWtblCfg[entry].fgRKV = 0;
-						prWtblCfg[entry].fgRCID = 0;
-						prWtblCfg[entry].ucKeyID = prCmdKey->ucKeyId;
-						prWtblCfg[entry].fgRCA1 = 0;
-						prWtblCfg[entry].fgEvenPN = 0;
-					} else
-#endif
-					{
-						prWtblCfg[entry].fgRCA2 = 1;
-						prWtblCfg[entry].fgRV = 1;
-						prWtblCfg[entry].fgIKV = 0;
-						prWtblCfg[entry].fgRKV = 1;
-
-						prCmdKey->ucTxKey =
-						    ((prNewKey->u4KeyIndex & IS_TRANSMIT_KEY) ==
-						     IS_TRANSMIT_KEY) ? 1 : 0;
-						prCmdKey->ucKeyType =
-						    ((prNewKey->u4KeyIndex & IS_UNICAST_KEY) == IS_UNICAST_KEY) ? 1 : 0;
-
-						SetRCID(fgOneTb3, &prWtblCfg[entry].fgRCID);
-						 /*AOSP*/ prWtblCfg[entry].ucKeyID = prCmdKey->ucKeyId;
-						prWtblCfg[entry].fgRCA1 = 0;
-						prWtblCfg[entry].fgEvenPN = 1;
-					}
-				}
-			} else {
-				prWtblCfg[entry].fgRCA2 = 1;
-				prWtblCfg[entry].fgRV = 1;
-				prWtblCfg[entry].fgIKV = 0;
-				prWtblCfg[entry].fgRKV = 1;
-				if (fgOneTb3)
-					prWtblCfg[entry].fgRCID = 0;
-				else
-					prWtblCfg[entry].fgRCID = 1;
-				prWtblCfg[entry].ucKeyID = prCmdKey->ucKeyId;
-				prWtblCfg[entry].fgRCA1 = 1;
-				prWtblCfg[entry].ucMUARIdx = 0x30;
-#if 0
-				if (prCmdKey->ucIsAuthenticator)
-					prWtblCfg[entry].fgEvenPN = 0;
-				else
-#endif
-					prWtblCfg[entry].fgEvenPN = 1;
-			}
-			secPrivacyDumpWTBL3(prAdapter, entry);
-		}
-#endif
 	}
 
 	/* insert into prCmdQueue */

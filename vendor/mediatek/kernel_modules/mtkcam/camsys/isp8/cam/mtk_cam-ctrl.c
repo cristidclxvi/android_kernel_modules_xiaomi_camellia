@@ -38,9 +38,7 @@
 #define WATCHDOG_MAX_HWTIME_MS		(WATCHDOG_INTERVAL_MS * 2)
 #define WATCHDOG_MAX_SENSOR_RETRY_CNT	3
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 
 unsigned long engine_idx_to_bit(int engine_type, int idx)
 {
@@ -2342,10 +2340,6 @@ void mtk_cam_ctrl_stop(struct mtk_cam_ctrl *cam_ctrl)
 	kthread_flush_worker(&ctx->done_worker);
 	kthread_flush_worker(&ctx->sensor_worker);
 	kthread_flush_worker(&ctx->tuning_worker);
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	if (ctx->is_ois_compensation)
-		oplus_cam_disable_ois();
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 	INIT_LIST_HEAD(&job_list);
 
 	write_lock(&cam_ctrl->list_lock);

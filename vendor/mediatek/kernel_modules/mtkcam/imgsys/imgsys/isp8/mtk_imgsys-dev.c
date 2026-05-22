@@ -22,9 +22,7 @@
 #include "mtk-img-ipi.h"
 #include "mtk_header_desc.h"
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 
 struct fd_kva_list_t fd_kva_info_list = {
 	.mymutex = __MUTEX_INITIALIZER(fd_kva_info_list.mymutex),

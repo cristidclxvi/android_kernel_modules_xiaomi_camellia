@@ -106,11 +106,6 @@ static int set_mclk(struct adaptor_ctx *ctx, void *data, const struct subdrv_pw_
 	int ret;
 	struct clk *mclk, *mclk_src;
 	unsigned long long idx;
-	#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-	unsigned char payload[PAYLOAD_LENGTH] = {0x00};
-	scnprintf(payload, sizeof(payload), "NULL$$EventField@@%s$$FieldData@@0x=%x$$detailData@@sn=%s",
-		acquireEventField(EXCEP_CLOCK), (CAM_RESERVED_ID << 20 | CAM_MODULE_ID << 12 | EXCEP_CLOCK), ctx->subdrv->name);
-	#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
 	if (!val)
 		return -EINVAL;
@@ -136,9 +131,6 @@ static int set_mclk(struct adaptor_ctx *ctx, void *data, const struct subdrv_pw_
 		adaptor_logi(ctx,
 			"clk_prepare_enable(%s),ret(%d)(fail)\n",
 			clk_names[idx], ret);
-		#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-		cam_olc_raise_exception(EXCEP_CLOCK, payload);
-		#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 		return ret;
 	}
 	adaptor_logm(ctx,
@@ -207,9 +199,6 @@ static int set_reg(struct adaptor_ctx *ctx, void *data, const struct subdrv_pw_v
 	int ret;
 	struct regulator *reg;
 	int min_v, max_v;
-	#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-	unsigned char payload[PAYLOAD_LENGTH] = {0x00};
-	#endif  /* OPLUS_FEATURE_CAMERA_COMMON */
 
 	if (!val)
 		return -EINVAL;
@@ -251,12 +240,6 @@ static int set_reg(struct adaptor_ctx *ctx, void *data, const struct subdrv_pw_v
 		adaptor_loge(ctx,
 			"regulator_enable(%s),ret(%d)(fail)\n",
 			reg_names[idx], ret);
-		#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-		scnprintf(payload, sizeof(payload), "NULL$$EventField@@%s$$FieldData@@0x%x$$detailData@@sn=%s, reg_names=%s",
-			acquireEventField(EXCEP_VOLTAGE), (CAM_RESERVED_ID << 20 | CAM_MODULE_ID << 12 | EXCEP_VOLTAGE),
-			ctx->subdrv->name, reg_names[idx]);
-		cam_olc_raise_exception(EXCEP_VOLTAGE, payload);
-		#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 		return ret;
 	}
 	adaptor_logm(ctx,
@@ -298,9 +281,6 @@ static int __set_state(struct adaptor_ctx *ctx, void *data, int val)
 {
 	unsigned long long idx, x;
 	int ret;
-	#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-	unsigned char payload[PAYLOAD_LENGTH] = {0x00};
-	#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
 	if (!ctx)
 		return -1;
@@ -314,12 +294,6 @@ static int __set_state(struct adaptor_ctx *ctx, void *data, int val)
 		adaptor_loge(ctx,
 			"select(%s),ret(%d)(fail)\n",
 			state_names[x], ret);
-		#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-		scnprintf(payload, sizeof(payload), "NULL$$EventField@@%s$$FieldData@@0x%x$$detailData@@sn=%s, state_names=%s",
-			acquireEventField(EXCEP_GPIO), (CAM_RESERVED_ID << 20 | CAM_MODULE_ID << 12 | EXCEP_GPIO),
-			ctx->subdrv->name, state_names[idx]);
-		cam_olc_raise_exception(EXCEP_GPIO, payload);
-		#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 		return ret;
 	}
 	adaptor_logm(ctx,

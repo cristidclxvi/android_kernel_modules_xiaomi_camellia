@@ -47,9 +47,7 @@ static struct subdrv_entry *imgsensor_subdrvs[] = {
 #endif
 };
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
 module_param(sensor_debug, uint, 0644);
 module_param(set_ctrl_unlock, uint, 0644);
@@ -58,10 +56,6 @@ MODULE_PARM_DESC(sensor_debug, "imgsensor_debug");
 unsigned int gSensor_num;
 unsigned int is_multicam;
 unsigned int is_imgsensor_fusion_test_workaround;
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-extern struct mutex dw9786_mutex;
-bool dw9786_mutex_init_flag = false;
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 static void get_outfmt_code(struct adaptor_ctx *ctx)
 {
@@ -1537,13 +1531,6 @@ static int imgsensor_probe(struct i3c_i2c_device *client)
 	mutex_init(&ctx->mutex);
 	mutex_init(&ctx->ebd_lock);
 	mutex_init(&ctx->subctx.i2c_buffer_lock);
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	if (!dw9786_mutex_init_flag) {
-		mutex_init(&dw9786_mutex);
-		adaptor_loge(ctx, "dw9786_mutex init\n");
-		dw9786_mutex_init_flag = true;
-	}
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 	if (sentest_probe_init(ctx))
 		adaptor_loge(ctx, "sentest_probe_init return failed\n");
@@ -1593,9 +1580,6 @@ static int imgsensor_probe(struct i3c_i2c_device *client)
 	ret = adaptor_hw_init(ctx);
 	if (ret) {
 		adaptor_loge(ctx, "failed to init hw handles\n");
-		#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-		push_sensor_name(ctx->subdrv->name);
-		#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 		return ret;
 	}
 
@@ -1783,13 +1767,6 @@ static void imgsensor_remove(struct i3c_i2c_device *client)
 	device_remove_file(ctx->dev, &dev_attr_debug_sensor_mode_ops);
 
 	mutex_destroy(&ctx->mutex);
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-	if (dw9786_mutex_init_flag) {
-		mutex_destroy(&dw9786_mutex);
-		adaptor_loge(ctx, "dw9786_mutex destroy\n");
-		dw9786_mutex_init_flag = false;
-	}
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 }
 

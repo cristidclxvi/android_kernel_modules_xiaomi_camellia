@@ -112,9 +112,6 @@ PARAM_CUSTOM_KEY_CFG_STRUCT_T g_rDefaulteSetting[] = {
 *                   F U N C T I O N   D E C L A R A T I O N S
 *******************************************************************************
 */
-#if DBG && 0
-static VOID SetRCID(BOOLEAN fgOneTb3, BOOL *fgRCID);
-#endif
 
 #if CFG_SLT_SUPPORT
 static VOID SetTestChannel(UINT_8 *pucPrimaryChannel);
@@ -134,16 +131,6 @@ static BOOLEAN IsBufferedStatisticsUsable(P_ADAPTER_T prAdapter)
 		return TRUE;
 	else
 		return FALSE;
-}
-#endif
-
-#if DBG && 0
-static VOID SetRCID(BOOLEAN fgOneTb3, BOOL *fgRCID)
-{
-	if (fgOneTb3)
-		*fgRCID = 0;
-	else
-		*fgRCID = 1;
 }
 #endif
 

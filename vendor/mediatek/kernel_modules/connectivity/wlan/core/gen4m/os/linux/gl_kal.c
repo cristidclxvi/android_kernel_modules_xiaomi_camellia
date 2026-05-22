@@ -2160,16 +2160,6 @@ uint32_t kalRxIndicateOnePkt(struct GLUE_INFO
 	prChipInfo = prGlueInfo->prAdapter->chip_info;
 	ucBssIdx = GLUE_GET_PKT_BSS_IDX(prSkb);
 	RX_INC_CNT(&prGlueInfo->prAdapter->rRxCtrl, RX_DATA_INDICATION_COUNT);
-#if DBG && 0
-	do {
-		uint8_t *pu4Head = (uint8_t *) &prSkb->cb[0];
-		uint32_t u4HeadValue = 0;
-
-		kalMemCopy(&u4HeadValue, pu4Head, sizeof(u4HeadValue));
-		DBGLOG(RX, TRACE, "prSkb->head = 0x%p, prSkb->cb = 0x%lx\n",
-		       pu4Head, u4HeadValue);
-	} while (0);
-#endif
 
 	if (ucBssIdx < MAX_BSSID_NUM) {
 		prNetDev = (struct net_device *)wlanGetNetInterfaceByBssIdx(

@@ -1777,14 +1777,12 @@ kalQoSFrameClassifierAndPacketInfo(IN P_GLUE_INFO_T prGlueInfo,
 			/* Get the DSCP value from the header of IP packet. */
 			ucUserPriority = getUpFromDscp(prGlueInfo, *pucNetworkType, (ucIpTos >> 2) & 0x3F);
 
-#if (1 || defined(PPR2_TEST))
 		/* DBGLOG(TX, TRACE, "setUP ucIpTos: %d, ucUP: %d\n", ucIpTos, ucUserPriority);*/
 		if (pucIpHdr[9] == IP_PRO_ICMP && pucIpPayload[0] == 0x08) {
 			DBGLOG(TX, INFO, "PING ipid: %d ucIpTos: %d, ucUP: %d\n",
 				(pucIpHdr[5] << 8 | pucIpHdr[4]),
 				ucIpTos, ucUserPriority);
 		}
-#endif
 		if (ucUserPriority == 0xFF)
 			ucUserPriority = ((ucIpTos & IPTOS_PREC_MASK) >> IPTOS_PREC_OFFSET);
 

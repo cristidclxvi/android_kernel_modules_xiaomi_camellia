@@ -3330,9 +3330,6 @@ try_again:
 			prCandBssDesc = prBssDesc;
 			u2CandBssScore = u2ScoreTotal;
 			i2CandPreference = i2Preference;
-#if CFG_SUPPORT_802_11V_BSS_TRANSITION_MGT && 0 /* Don't send our neighbor ap list currently */
-			aprPrioBss[ucPrioBssNum++] = prBssDesc;
-#endif
 		}
 	} /* end of LINK_FOR_EACH */
 
@@ -3355,27 +3352,6 @@ try_again:
 		DBGLOG(SCN, TRACE, "No Bss is found, Try blacklist\n");
 		goto try_again;
 	}
-#if CFG_SUPPORT_802_11V_BSS_TRANSITION_MGT && 0 /* Don't send our neighbor ap list currently */
-	/* Prepare our neighbor AP list if need to send back Bss Transition Mgmt response frame */
-	if (prAisSpecificBssInfo->rBTMParam.fgPendingResponse && !prAdapter->rWifiVar.rAisFsmInfo.fgAdjChnlScanIssued) {
-		PUINT_8 pucNeighborAPBuf = NULL;
-		INT_16 i = -1;
-
-		kalMemFree(prAisSpecificBssInfo->rBTMParam.pucOurNeighborBss, VIR_MEM_TYPE,
-			prAisSpecificBssInfo->rBTMParam.u2OurNeighborBssLen);
-		prAisSpecificBssInfo->rBTMParam.u2OurNeighborBssLen =
-			ucPrioBssNum * (sizeof(struct IE_NEIGHBOR_REPORT_T) + 3);
-		pucNeighborAPBuf = kalMemAlloc(prAisSpecificBssInfo->rBTMParam.u2OurNeighborBssLen, VIR_MEM_TYPE);
-		prAisSpecificBssInfo->rBTMParam.pucOurNeighborBss = pucNeighborAPBuf;
-		if (pucNeighborAPBuf) {
-			kalMemZero(pucNeighborAPBuf, prAisSpecificBssInfo->rBTMParam.u2OurNeighborBssLen);
-			i = (INT_16)ucPrioBssNum - 1;
-			for (; i >= 0; i--)
-				pucNeighborAPBuf +=
-				scanGenNeighborApReport(aprPrioBss[i], pucNeighborAPBuf, 1);
-		}
-	}
-#endif
 	DBGLOG(SCN, INFO, "Selected None when find %s, %pM in %d BSSes, blacklist %d\n",
 	       prConnSettings->aucSSID, prConnSettings->aucBSSID,
 	       prEssLink->u4NumElem, fgSearchBlackList);

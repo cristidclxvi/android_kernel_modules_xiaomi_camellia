@@ -985,16 +985,6 @@ uint32_t kalRxIndicateOnePkt(IN struct GLUE_INFO
 
 	prSkb = pvPkt;
 	prChipInfo = prGlueInfo->prAdapter->chip_info;
-#if DBG && 0
-	do {
-		uint8_t *pu4Head = (uint8_t *) &prSkb->cb[0];
-		uint32_t u4HeadValue = 0;
-
-		kalMemCopy(&u4HeadValue, pu4Head, sizeof(u4HeadValue));
-		DBGLOG(RX, TRACE, "prSkb->head = 0x%p, prSkb->cb = 0x%lx\n",
-		       pu4Head, u4HeadValue);
-	} while (0);
-#endif
 
 #if 1
 

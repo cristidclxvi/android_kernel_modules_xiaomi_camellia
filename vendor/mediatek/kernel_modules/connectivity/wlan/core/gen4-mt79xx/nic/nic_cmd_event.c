@@ -1085,50 +1085,6 @@ void nicCmdEventEnterRfTest(IN struct ADAPTER *prAdapter,
 	/* Block til firmware completed entering into RF test mode */
 	kalMsleep(500);
 
-#if defined(_HIF_SDIO) && 0
-	/* 3. Disable Interrupt */
-	HAL_INTR_DISABLE(prAdapter);
-
-	/* 4. Block til firmware completed entering into RF test mode */
-	kalMsleep(500);
-	while (1) {
-		uint32_t u4Value;
-
-		HAL_MCR_RD(prAdapter, MCR_WCIR, &u4Value);
-
-		if (u4Value & WCIR_WLAN_READY) {
-			break;
-		} else if (kalIsCardRemoved(prAdapter->prGlueInfo) == TRUE
-			   || fgIsBusAccessFailed == TRUE) {
-			if (prCmdInfo->fgIsOid) {
-				/* Update Set Information Length */
-				kalOidComplete(prAdapter->prGlueInfo,
-					prCmdInfo->fgSetQuery,
-					prCmdInfo->u4SetInfoLen,
-					WLAN_STATUS_NOT_SUPPORTED);
-
-			}
-			return;
-		}
-		kalMsleep(10);
-	}
-
-	/* 5. Clear Interrupt Status */
-	{
-		uint32_t u4WHISR = 0;
-		uint16_t au2TxCount[SDIO_TX_RESOURCE_NUM];
-
-		HAL_READ_INTR_STATUS(prAdapter, 4, (uint8_t *)&u4WHISR);
-		if (HAL_IS_TX_DONE_INTR(u4WHISR))
-			HAL_READ_TX_RELEASED_COUNT(prAdapter, au2TxCount);
-	}
-	/* 6. Reset TX Counter */
-	nicTxResetResource(prAdapter);
-
-	/* 7. Re-enable Interrupt */
-	HAL_INTR_ENABLE(prAdapter);
-#endif
-
 	/* 8. completion indication */
 	if (prCmdInfo->fgIsOid) {
 		/* Update Set Information Length */
@@ -1155,46 +1111,6 @@ void nicCmdEventLeaveRfTest(IN struct ADAPTER *prAdapter,
 
 	/* Block until firmware completed leaving from RF test mode */
 	kalMsleep(500);
-
-#if defined(_HIF_SDIO) && 0
-	uint32_t u4WHISR = 0;
-	uint16_t au2TxCount[SDIO_TX_RESOURCE_NUM];
-	uint32_t u4Value;
-
-	/* 1. Disable Interrupt */
-	HAL_INTR_DISABLE(prAdapter);
-
-	/* 2. Block until firmware completed leaving from RF test mode */
-	kalMsleep(500);
-	while (1) {
-		HAL_MCR_RD(prAdapter, MCR_WCIR, &u4Value);
-
-		if (u4Value & WCIR_WLAN_READY) {
-			break;
-		} else if (kalIsCardRemoved(prAdapter->prGlueInfo) == TRUE
-			   || fgIsBusAccessFailed == TRUE) {
-			if (prCmdInfo->fgIsOid) {
-				/* Update Set Information Length */
-				kalOidComplete(prAdapter->prGlueInfo,
-					prCmdInfo->fgSetQuery,
-					prCmdInfo->u4SetInfoLen,
-					WLAN_STATUS_NOT_SUPPORTED);
-
-			}
-			return;
-		}
-		kalMsleep(10);
-	}
-	/* 3. Clear Interrupt Status */
-	HAL_READ_INTR_STATUS(prAdapter, 4, (uint8_t *)&u4WHISR);
-	if (HAL_IS_TX_DONE_INTR(u4WHISR))
-		HAL_READ_TX_RELEASED_COUNT(prAdapter, au2TxCount);
-	/* 4. Reset TX Counter */
-	nicTxResetResource(prAdapter);
-
-	/* 5. Re-enable Interrupt */
-	HAL_INTR_ENABLE(prAdapter);
-#endif
 
 	/* 6. set driver-land variable */
 	prAdapter->fgTestMode = FALSE;

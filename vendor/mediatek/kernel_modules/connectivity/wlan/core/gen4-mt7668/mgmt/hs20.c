@@ -358,21 +358,6 @@ BOOLEAN hs20IsGratuitousArp(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prCurrSwRfb)
 	PUINT_8 pucSenderIP = prCurrSwRfb->pvHeader + ETHER_HEADER_LEN + ARP_SENDER_IP_OFFSET;
 	PUINT_8 pucTargetIP = prCurrSwRfb->pvHeader + ETHER_HEADER_LEN + ARP_TARGET_IP_OFFSET;
 	PUINT_8 pucSenderMac = ((PUINT_8) prCurrSwRfb->pvHeader + ETHER_HEADER_LEN + ARP_SNEDER_MAC_OFFSET);
-#if CFG_HS20_DEBUG && 0
-/* UINT_8  aucIpAllZero[4] = {0,0,0,0}; */
-/* UINT_8  aucMACAllZero[MAC_ADDR_LEN] = {0,0,0,0,0,0}; */
-	PUINT_8 pucTargetMac = ((PUINT_8) prCurrSwRfb->pvHeader + ETHER_HEADER_LEN + ARP_TARGET_MAC_OFFSET);
-#endif
-
-#if CFG_HS20_DEBUG && 0
-	PUINT_16 pu2ArpOper = (PUINT_16) ((PUINT_8) prCurrSwRfb->pvHeader + ETHER_HEADER_LEN + ARP_OPERATION_OFFSET);
-
-	kalPrint("Recv ARP 0x%04X\n", htons(*pu2ArpOper));
-	kalPrint("SENDER[" MACSTR "] [%d:%d:%d:%d]\n", MAC2STR(pucSenderMac), *pucSenderIP,
-		 *(pucSenderIP + 1), *(pucSenderIP + 2), *(pucSenderIP + 3));
-	kalPrint("TARGET[" MACSTR "] [%d:%d:%d:%d]\n", MAC2STR(pucTargetMac), *pucTargetIP,
-		 *(pucTargetIP + 1), *(pucTargetIP + 2), *(pucTargetIP + 3));
-#endif
 
 	/* IsGratuitousArp */
 	if (!kalMemCmp(pucSenderIP, pucTargetIP, 4)) {

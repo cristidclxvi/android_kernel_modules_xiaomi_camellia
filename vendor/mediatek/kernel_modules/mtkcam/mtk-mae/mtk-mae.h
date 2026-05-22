@@ -15,9 +15,7 @@
 #include <media/videobuf2-v4l2.h>
 #include <linux/types.h>
 #include <linux/time.h>
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 typedef void (*mtk_mae_register_tf_cb)(void *);
 void register_mtk_mae_reg_tf_cb(mtk_mae_register_tf_cb mtk_mae_register_tf_cb_fn);

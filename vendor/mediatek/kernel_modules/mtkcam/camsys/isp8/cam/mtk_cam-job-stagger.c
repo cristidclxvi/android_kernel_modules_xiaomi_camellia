@@ -7,9 +7,7 @@
 #include "mtk_cam-job_utils.h"
 #include "mtk_cam-raw_ctrl.h"
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 
 int fill_imgo_buf_to_ipi_stagger(
 	struct req_buffer_helper *helper, struct mtk_cam_buffer *buf,

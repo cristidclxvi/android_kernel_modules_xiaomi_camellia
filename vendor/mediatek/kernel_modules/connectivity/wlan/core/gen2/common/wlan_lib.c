@@ -1231,15 +1231,6 @@ WLAN_STATUS wlanSendCommand(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo)
 	/* DbgPrint("wlanSendCommand()\n"); */
 	/*  */
 	/*  */
-#if DBG && 0
-	LOG_FUNC("wlanSendCommand()\n");
-	LOG_FUNC("CmdType %u NetworkType %u StaRecIndex %u Oid %u CID 0x%x SetQuery %u NeedResp %u CmdSeqNum %u\n",
-		 prCmdInfo->eCmdType,
-		 prCmdInfo->eNetworkType,
-		 prCmdInfo->ucStaRecIndex,
-		 prCmdInfo->fgIsOid,
-		 prCmdInfo->ucCID, prCmdInfo->fgSetQuery, prCmdInfo->fgNeedResp, prCmdInfo->ucCmdSeqNum);
-#endif
 
 #if (MT6620_E1_ASIC_HIFSYS_WORKAROUND == 1)
 	if (prAdapter->fgIsClockGatingEnabled == TRUE)

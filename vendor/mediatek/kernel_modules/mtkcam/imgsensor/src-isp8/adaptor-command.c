@@ -11,9 +11,6 @@
 #include "adaptor-sentest-ctrl.h"
 
 #include "adaptor-command.h"
-#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-#include "oplus/inc/oplus_cam_olc_exception.h"
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
 /*---------------------------------------------------------------------------*/
 // define
@@ -575,31 +572,6 @@ static int s_cmd_sensor_fl_prolong(struct adaptor_ctx *ctx, void *arg)
 	return ret;
 }
 
-#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-static int s_cmd_update_olc_status(struct adaptor_ctx *ctx, void *arg) {
-	struct olc_params *olc_data_ptr = NULL;
-	int ret = 0;
-	unsigned char payload[PAYLOAD_LENGTH] = {0x00};
-	/* error handling (unexpected case) */
-	if (unlikely(arg == NULL)) {
-		ret = -ENOIOCTLCMD;
-		adaptor_logi(ctx,
-			"ERROR: V4L2_CMD_OLC_EVENT, idx:%d, input arg is nullptr",
-			ctx->idx);
-		return ret;
-	}
-	olc_data_ptr = (struct olc_params*) arg;
-
-	scnprintf(payload, sizeof(payload),
-		"NULL$$EventField@@%s$$FieldData@@0x%x$$detailData@@subdev=%s, time_after_sof=%llu, frame_time=%llu",
-		acquireEventField(EXCEP_SOF_TIMEOUT), (CAM_RESERVED_ID << 20 | CAM_MODULE_ID << 12 | EXCEP_SOF_TIMEOUT),
-		olc_data_ptr->name, olc_data_ptr->time_after_sof, olc_data_ptr->frame_time);
-	ret = cam_olc_raise_exception(EXCEP_SOF_TIMEOUT, payload);
-	adaptor_logd(ctx,"olc raise execption ret:%d\n", ret);
-	return ret;
-}
-#endif
-
 /*---------------------------------------------------------------------------*/
 // adaptor command framework/entry
 /*---------------------------------------------------------------------------*/
@@ -632,9 +604,6 @@ static const struct command_entry command_list[] = {
 	{V4L2_CMD_SENSOR_PARSE_EBD, s_cmd_sensor_parse_ebd},
 	{V4L2_CMD_TSREC_SETUP_CB_FUNC_OF_SENSOR, s_cmd_tsrec_setup_cb_info},
 	{V4L2_CMD_SET_SENSOR_FL_PROLONG, s_cmd_sensor_fl_prolong},
-#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-	{V4L2_CMD_OLC_EVENT, s_cmd_update_olc_status},
-#endif
 };
 
 long adaptor_command(struct v4l2_subdev *sd, unsigned int cmd, void *arg)

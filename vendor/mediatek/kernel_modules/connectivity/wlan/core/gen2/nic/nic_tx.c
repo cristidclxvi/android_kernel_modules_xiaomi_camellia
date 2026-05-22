@@ -458,16 +458,6 @@ WLAN_STATUS nicTxMsduInfoList(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduI
 	/* Separate MSDU_INFO_T lists into 2 categories: for Port#0 & Port#1 */
 	while (prMsduInfo) {
 		prNextMsduInfo = (P_MSDU_INFO_T) QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T) prMsduInfo);
-#if DBG && 0
-		LOG_FUNC("nicTxMsduInfoList Acquire TC %d net %u mac len %u len %u Type %u 1x %u 11 %u\n",
-			 prMsduInfo->ucTC,
-			 prMsduInfo->ucNetworkType,
-			 prMsduInfo->ucMacHeaderLength,
-			 prMsduInfo->u2FrameLength,
-			 prMsduInfo->ucPacketType, prMsduInfo->fgIs802_1x, prMsduInfo->fgIs802_11);
-
-		LOG_FUNC("Dest Mac: %pM\n", prMsduInfo->aucEthDestAddr);
-#endif
 
 		/* double-check available TX resouce (need to sync with CONNSYS FW) */
 		/* caller must guarantee that the TX resource is enough in the func; OR assert here */

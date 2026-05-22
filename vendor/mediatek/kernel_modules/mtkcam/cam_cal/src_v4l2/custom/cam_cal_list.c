@@ -8,13 +8,8 @@
 #include "eeprom_i2c_common_driver.h"
 #include "eeprom_i2c_custom_driver.h"
 #include "kd_imgsensor.h"
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-#include "oplus_cam_cal_list.h"
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
 #define MAX_EEPROM_SIZE_32K 0x8000
 #define MAX_EEPROM_SIZE_16K 0x4000
@@ -53,11 +48,7 @@ unsigned int cam_cal_get_sensor_list(
 	if (ppCamcalList == NULL)
 		return 1;
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	*ppCamcalList = &g_camCalList[0];
-#else /* OPLUS_FEATURE_CAMERA_COMMON */
-	*ppCamcalList = &g_oplusCamCalList[0];
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 	return 0;
 }
 

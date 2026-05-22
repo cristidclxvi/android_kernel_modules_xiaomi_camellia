@@ -113,9 +113,6 @@ struct PARAM_CUSTOM_KEY_CFG_STRUCT g_rDefaulteSetting[] = {
  *                   F U N C T I O N   D E C L A R A T I O N S
  ******************************************************************************
  */
-#if DBG && 0
-static void SetRCID(u_int8_t fgOneTb3, u_int8_t *fgRCID);
-#endif
 
 #if CFG_SLT_SUPPORT
 static void SetTestChannel(uint8_t *pucPrimaryChannel);
@@ -179,16 +176,6 @@ static u_int8_t IsBufferedStatisticsUsable(
 		return TRUE;
 	else
 		return FALSE;
-}
-#endif
-
-#if DBG && 0
-static void SetRCID(u_int8_t fgOneTb3, u_int8_t *fgRCID)
-{
-	if (fgOneTb3)
-		*fgRCID = 0;
-	else
-		*fgRCID = 1;
 }
 #endif
 

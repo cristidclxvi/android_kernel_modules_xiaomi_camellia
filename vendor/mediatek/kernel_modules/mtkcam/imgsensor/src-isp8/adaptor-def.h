@@ -10,9 +10,6 @@
 
 #define IMGSENSOR_LOG_MORE 0
 #define IMGSENSOR_AOV_EINT_UT 0
-#if defined(OPLUS_FEATURE_CAMERA_COMMON) && defined(CONFIG_OPLUS_CAM_EVENT_REPORT_MODULE)
-#include "oplus/dfx/oplus_cam_event_report.h"
-#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 
 enum {
 	CLK_6M = 0,

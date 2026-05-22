@@ -12,9 +12,7 @@
 
 #include "mtk_cam-job.h"
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 
 #define DISABLE_RECOVER_FLOW 0
 

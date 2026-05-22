@@ -5413,10 +5413,6 @@ UINT_32 qmGetRxReorderQueuedBufferCount(IN P_ADAPTER_T prAdapter)
 	/* XXX The summation may impact the performance */
 	for (i = 0; i < CFG_NUM_OF_RX_BA_AGREEMENTS; i++) {
 		u4Total += prQM->arRxBaTable[i].rReOrderQue.u4NumElem;
-#if DBG && 0
-		if (QUEUE_IS_EMPTY(&(prQM->arRxBaTable[i].rReOrderQue)))
-			ASSERT(prQM->arRxBaTable[i].rReOrderQue == 0);
-#endif
 	}
 	ASSERT(u4Total <= (CFG_NUM_OF_QM_RX_PKT_NUM * 2));
 	return u4Total;

@@ -2034,36 +2034,8 @@ VOID aisFsmSteps(IN P_ADAPTER_T prAdapter, ENUM_AIS_STATE_T eNextState)
 
 		case AIS_STATE_COLLECT_ESS_INFO:
 		{
-#if CFG_SELECT_BSS_BASE_ON_MULTI_PARAM && 0 /* disable channel utilization now */
-			UINT_8 i = 0;
-			P_AIS_SPECIFIC_BSS_INFO_T prAisSpecBssInfo = &prAdapter->rWifiVar.rAisSpecificBssInfo;
-			struct MSG_REQ_CH_UTIL *prMsgReqChUtil = NULL;
-
-			/* don't request channel utilization if user asked to connect a specific bss */
-			if (prConnSettings->eConnectionPolicy == CONNECT_BY_BSSID) {
-				eNextState = AIS_STATE_SEARCH;
-				fgIsTransition = TRUE;
-				break;
-			}
-			prMsgReqChUtil = (struct MSG_REQ_CH_UTIL *)
-				cnmMemAlloc(prAdapter, RAM_TYPE_MSG, sizeof(struct MSG_REQ_CH_UTIL));
-			if (!prMsgReqChUtil) {
-				DBGLOG(AIS, ERROR, "No memory!");
-				return;
-			}
-			kalMemZero(prMsgReqChUtil, sizeof(*prMsgReqChUtil));
-			prMsgReqChUtil->rMsgHdr.eMsgId = MID_MNY_CNM_REQ_CH_UTIL;
-			prMsgReqChUtil->u2ReturnMID = MID_CNM_AIS_RSP_CH_UTIL;
-			prMsgReqChUtil->u2Duration = 100; /* 100ms */
-			prMsgReqChUtil->ucChnlNum = prAisSpecBssInfo->ucCurEssChnlInfoNum;
-			for (; i < prMsgReqChUtil->ucChnlNum && i < sizeof(prMsgReqChUtil->aucChnlList); i++)
-				prMsgReqChUtil->aucChnlList[i] = prAisSpecBssInfo->arCurEssChnlInfo[i].ucChannel;
-
-			mboxSendMsg(prAdapter, MBOX_ID_0, (P_MSG_HDR_T)prMsgReqChUtil, MSG_SEND_METHOD_BUF);
-#else
 			eNextState = AIS_STATE_SEARCH;
 			fgIsTransition = TRUE;
-#endif
 			break;
 		}
 

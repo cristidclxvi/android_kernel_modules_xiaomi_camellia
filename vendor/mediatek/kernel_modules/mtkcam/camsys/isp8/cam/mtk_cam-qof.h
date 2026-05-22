@@ -6,9 +6,7 @@
 #ifndef __MTK_CAM_QOF_H
 #define __MTK_CAM_QOF_H
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 struct mtk_raw_device;
 struct mtk_cam_ctx;

@@ -20,9 +20,7 @@
 #define sizeof_u32(__struct_name__) (sizeof(__struct_name__) / sizeof(u32))
 #define sizeof_u16(__struct_name__) (sizeof(__struct_name__) / sizeof(u16))
 
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 #define OPLUS_FEATURE_CAMERA_COMMON
-#endif
 
 #ifdef V4L2_CID_PD_PIXEL_REGION
 static int g_pd_pixel_region(struct adaptor_ctx *ctx, struct v4l2_ctrl *ctrl)
@@ -1241,9 +1239,6 @@ static int ext_ctrl(struct adaptor_ctx *ctx, struct v4l2_ctrl *ctrl, struct sens
 		struct mtk_csi_param *csi_param = ctrl->p_new.p;
 
 		if (csi_param) {
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-			csi_param->need_bw_change = mode->csi_param.need_bw_change;
-#endif
 			csi_param->cphy_settle = mode->csi_param.cphy_settle;
 			csi_param->dphy_clk_settle = mode->csi_param.dphy_clk_settle;
 			csi_param->dphy_data_settle = mode->csi_param.dphy_data_settle;
@@ -1392,11 +1387,7 @@ static int imgsensor_set_ctrl(struct v4l2_ctrl *ctrl)
 			*ctx->p_set_ctrl_unlock_flag);
 		return ret;
 	}
-#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	ADAPTOR_SYSTRACE_BEGIN("SensorWorker::%s %d", __func__, ctrl->id);
-#else /*OPLUS_FEATURE_CAMERA_COMMON*/
-	ADAPTOR_SYSTRACE_BEGIN("SensorWorker::%s %d %s", __func__, ctrl->id, ctrl->name);
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 	switch (ctrl->id) {
 	case V4L2_CID_FSYNC_HW_MCSS_INIT:
 		{
