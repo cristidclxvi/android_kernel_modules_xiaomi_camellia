@@ -82,4 +82,17 @@ static long silence_flag_dummy_v;
 #define DEVICE_MANUFACUTRE_NA        "NA"
 
 
+
+/* OPLUS scheduler / performance hooks - providers in kernel/oplus_cpu disabled. */
+#define mtk_rearrange_pipeline_preferred_cpus(...)  do { } while (0)
+#define cb_ceiling_free_enable(...)                 do { } while (0)
+#define update_ux_sched_cputopo(...)                do { } while (0)
+#define android_rvh_dequeue_task_handler(...)       do { } while (0)
+#define cb_update(...)                              do { } while (0)
+#define __oplus_tick_balance(...)                   (0)
+#define test_task_overload(...)                     do { } while (0)
+#define android_rvh_after_enqueue_task_handler(...) do { } while (0)
+#define android_rvh_schedule_handler(...)           do { } while (0)
+#define sa_skip_rt_sync(...)                        do { } while (0)
+
 #endif /* __CAMELLIA_OPLUS_COMPAT_H__ */
