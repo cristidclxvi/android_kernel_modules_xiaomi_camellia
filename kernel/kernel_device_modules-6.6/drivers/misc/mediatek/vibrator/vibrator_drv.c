@@ -11,6 +11,7 @@
  * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
  */
 
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
