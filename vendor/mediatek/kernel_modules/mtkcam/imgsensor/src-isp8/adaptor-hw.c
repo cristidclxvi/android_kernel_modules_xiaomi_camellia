@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0
-static inline void oplus_camera_call_notifier(void *ctx) { (void)ctx; }
 // Copyright (c) 2019 MediaTek Inc.
 
 //#define DEBUG

@@ -27,7 +27,7 @@ struct camera_notify_event {
 int  camera_event_register_notifier(struct notifier_block *nb);
 int  camera_event_unregister_notifier(struct notifier_block *nb);
 void camera_event_call_notifier(unsigned long action, int type);
-void oplus_camera_call_notifier(struct adaptor_ctx *ctx);
+static inline void oplus_camera_call_notifier(struct adaptor_ctx *ctx) { (void)ctx; }
 
 
 #endif /*_CAMERA_EVENTNOTIFY_H*/
