@@ -81,4 +81,13 @@ static long silence_flag_dummy_v;
 #define DEVICE_MANUFACUTRE_HLT       "HLT"
 #define DEVICE_MANUFACUTRE_NA        "NA"
 
+
+/* OPLUS UFS debug hooks - the defining module was disabled; stub all calls. */
+#define ufs_init_oplus_dbg(hba)         do { (void)(hba); } while (0)
+#define ufs_remove_oplus_dbg()          do { } while (0)
+#define ufs_sleep_time_get(hba)         do { (void)(hba); } while (0)
+#define ufs_active_time_get(hba)        do { (void)(hba); } while (0)
+#define ufs_oplus_init_sdev(sdev)       do { (void)(sdev); } while (0)
+#define recordSignalerr(hba, val, evt)  do { (void)(hba); (void)(val); (void)(evt); } while (0)
+
 #endif /* __CAMELLIA_OPLUS_COMPAT_H__ */
