@@ -1,3 +1,6 @@
+# camellia LOS 23 port: relax warnings inherited from older base
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef
+
 # SPDX-License-Identifier: GPL-2.0-only
 # Support GKI mixed build
 ifeq ($(DEVICE_MODULES_PATH),)
