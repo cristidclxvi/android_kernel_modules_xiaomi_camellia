@@ -197,13 +197,14 @@ struct ufs_ioctl_query_data {
 #endif
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0) */
 
-void ufs_active_time_get(struct ufs_hba *hba);
-void ufs_sleep_time_get(struct ufs_hba *hba);
-void recordSignalerr(struct ufs_hba *hba, unsigned int val, enum ufs_event_type evt);
-void ufs_init_oplus_dbg(struct ufs_hba *hba);
-void ufs_remove_oplus_dbg(void);
+/* camellia LOS 23: defining module disabled - inline no-op stubs. */
+static inline void ufs_active_time_get(struct ufs_hba *hba) { (void)hba; }
+static inline void ufs_sleep_time_get(struct ufs_hba *hba) { (void)hba; }
+static inline void recordSignalerr(struct ufs_hba *hba, unsigned int val, enum ufs_event_type evt) { (void)hba; (void)val; (void)evt; }
+static inline void ufs_init_oplus_dbg(struct ufs_hba *hba) { (void)hba; }
+static inline void ufs_remove_oplus_dbg(void) { }
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
-void ufs_oplus_init_sdev(struct scsi_device *sdev);
+static inline void ufs_oplus_init_sdev(struct scsi_device *sdev) { (void)sdev; }
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0) */
 
 #endif /* !_UFS_OPLUS_DBG_H */
