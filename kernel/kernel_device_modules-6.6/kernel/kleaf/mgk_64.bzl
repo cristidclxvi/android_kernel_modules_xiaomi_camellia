@@ -170,7 +170,7 @@ mgk_64_device_modules = [
     "drivers/gpu/drm/panel/mediatek-drm-gateic.ko",
     "drivers/gpu/drm/panel/mediatek-drm-panel-drv.ko",
     "drivers/gpu/drm/panel/panel-alpha-jdi-nt36672c-cphy-vdo.ko",
-    "drivers/gpu/drm/panel/panel-alpha-tianma-nt36672c-cphy-vdo.ko",
+    #"drivers/gpu/drm/panel/panel-alpha-tianma-nt36672c-cphy-vdo.ko",
     "drivers/gpu/drm/panel/panel-alpha-jdi-nt36672e-cphy-vdo.ko",
     "drivers/gpu/drm/panel/panel-alpha-jdi-nt36672e-vdo-120hz-hfp.ko",
     "drivers/gpu/drm/panel/panel-alpha-jdi-nt36672e-vdo-120hz.ko",
