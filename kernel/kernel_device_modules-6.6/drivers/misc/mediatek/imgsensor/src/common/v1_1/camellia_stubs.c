@@ -48,4 +48,26 @@ struct IMGSENSOR_HW_POWER_SEQ platform_power_sequence_for_mt6833[] = {
 };
 EXPORT_SYMBOL_GPL(platform_power_sequence_for_mt6833);
 
+
+/* Board / project ID hooks from include/soc/oplus/boot/oplus_project.h.
+ * Provider was drivers/soc/oplus/boot which is disabled.
+ * Return 0/empty defaults until Phase 2 wires the camellia board IDs. */
+unsigned int get_PCB_Version(void) { return 0; }
+EXPORT_SYMBOL_GPL(get_PCB_Version);
+
+unsigned int get_project(void)         { return 0; }
+EXPORT_SYMBOL_GPL(get_project);
+
+unsigned int get_prj(void)             { return 0; }
+EXPORT_SYMBOL_GPL(get_prj);
+
+unsigned int get_Oplus_Boot_Mode(void) { return 0; }
+EXPORT_SYMBOL_GPL(get_Oplus_Boot_Mode);
+
+unsigned int get_audio(void)           { return 0; }
+EXPORT_SYMBOL_GPL(get_audio);
+
+unsigned int get_dtsiNo(void)          { return 0; }
+EXPORT_SYMBOL_GPL(get_dtsiNo);
+
 MODULE_LICENSE("GPL v2");
