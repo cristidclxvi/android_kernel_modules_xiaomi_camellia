@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 OPTIM = -Os
 
 MTK_PLATFORM := $(MTK_PLATFORM_VERSION)
@@ -514,3 +513,5 @@ ifneq ($(filter $(CONFIG_MTK_GPU_SUPPORT),y m),)
 	obj-m += pvrsrvkm_$(MTK_PLATFORM).o
 	# pvrsrvkm_$(MTK_PLATFORM)-y := pvrsrvkm.o
 endif
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare

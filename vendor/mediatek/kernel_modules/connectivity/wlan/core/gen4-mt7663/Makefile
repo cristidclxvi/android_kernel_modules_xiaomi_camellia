@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 # ---------------------------------------------------
 # ALPS Setting
 # ---------------------------------------------------
@@ -576,3 +575,6 @@ ccflags-y += -DCFG_SDIO_RX_AGG_WORKQUE=0
 
 #Support mobile private cmd, need change cmd size to 512
 ccflags-y += -DCFG_ALPS_ANDROID_AOSP_PRIV_CMD
+
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare

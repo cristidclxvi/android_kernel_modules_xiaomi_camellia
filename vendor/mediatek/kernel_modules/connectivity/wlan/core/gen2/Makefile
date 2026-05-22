@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 ###############################################################################
 # Necessary Check
@@ -360,3 +359,6 @@ $(MODULE_NAME)-objs  += $(OS_OBJS)
 $(MODULE_NAME)-objs  += $(HIF_OBJS)
 $(MODULE_NAME)-objs  += $(MGMT_OBJS)
 
+
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare

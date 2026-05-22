@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 ifeq ($(LINUX_SRC), )
 	export KERNEL_SRC := /lib/modules/$(shell uname -r)/build
 else
@@ -165,3 +164,6 @@ ccs:
 	./util/checkpatch.pl -f btmtk_woble.c
 	./util/checkpatch.pl -f btmtk_chip_reset.c
 
+
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare

@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 # SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 #
 # (C) COPYRIGHT 2017-2023 ARM Limited. All rights reserved.
@@ -40,3 +39,6 @@ obj-$(CONFIG_MALI_KUTF_KERNEL_DEFECT_TEST) += mali_kutf_kernel_defect_test/kerne
 obj-$(CONFIG_MALI_KUTF_KERNEL_POWER_TEST) += mali_kutf_kernel_power_test/kernel/
 obj-$(CONFIG_MALI_KUTF_CSF_TESTS) += mali_kutf_pma_unit_test/kernel/
 
+
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare

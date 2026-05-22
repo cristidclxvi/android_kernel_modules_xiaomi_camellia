@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 ###############################################################################
 # Bluetooth character device driver
 
@@ -90,3 +89,6 @@ $(MODULE_NAME)-objs += btmtk_dbg.o btmtk_dbg_tp_evt_if.o
 ifneq ($(CONFIG_MTK_CONNSYS_DEDICATED_LOG_PATH),)
 $(MODULE_NAME)-objs += fw_log_bt.o
 endif
+
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare

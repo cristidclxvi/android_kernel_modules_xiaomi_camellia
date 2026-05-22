@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 $(info [bt_drv] linux_v2/makefile start)
 # Support GKI mixed build
 ifeq ($(DEVICE_MODULES_PATH),)
@@ -331,3 +330,6 @@ ccs:
 	./util/checkpatch.pl -f btmtk_queue.c
 	./util/checkpatch.pl -f btmtk_char_dev.c
 $(info [bt_drv] linux_v2/makefile end)
+
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare

@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 MET_ROOT_DIR := $(src)
 MET_COMMON_DIR := $(wildcard $(MET_ROOT_DIR)/common)
@@ -48,3 +47,6 @@ ifeq ($(MET_BUILD_DEFAULT),y)
     MET_DEF_DIR := $(MET_ROOT_DIR)/default
     include $(MET_DEF_DIR)/Kbuild
 endif
+
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare

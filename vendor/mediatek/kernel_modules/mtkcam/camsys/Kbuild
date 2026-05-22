@@ -1,4 +1,3 @@
-ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 # Support GKI mixed build
 ifeq ($(DEVICE_MODULES_PATH),)
 DEVICE_MODULES_PATH = $(srctree)
@@ -19,3 +18,6 @@ obj-y += isp7sp/
 obj-y += isp8/
 obj-$(CONFIG_RPMSG_MTK_CCD) += rpmsg/
 obj-$(CONFIG_MTK_CCD_REMOTEPROC) += remoteproc/
+
+# camellia LOS 23: relax warnings inherited from older base (AFTER any -Werror)
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
