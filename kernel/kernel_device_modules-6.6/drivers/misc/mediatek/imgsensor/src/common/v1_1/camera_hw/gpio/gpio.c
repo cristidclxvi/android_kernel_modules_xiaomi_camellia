@@ -20,8 +20,7 @@ struct GPIO_PINCTRL gpio_pinctrl_list_cam[
 	{"ldo_vcamd_0"},
 	{"ldo_vcamio_1"},
 	{"ldo_vcamio_0"},
-	{"avdd1_gpio_1"},
-	{"avdd1_gpio_0"},
+	/* camellia: avdd1_gpio_* removed - enum has no slots for dual-rail */
 };
 
 struct GPIO_PINCTRL gpio_pinctrl_list_cam_dufu[
@@ -266,9 +265,8 @@ struct GPIO_PINCTRL gpio_pinctrl_list_cam_212a1[
 	{"ldo_vcamd_1"},
 	{"ldo_vcamd_0"},
 	{"ldo_vcamio_1"},
-	{"ldo_vcamio_0"},
-	{"ldo_vcama1_1"},
-	{"ldo_vcama1_0"}
+	{"ldo_vcamio_0"}
+	/* camellia: ldo_vcama1_* removed - enum has no slots for dual-rail */
 };
 #ifdef MIPI_SWITCH
 struct GPIO_PINCTRL gpio_pinctrl_list_switch[
@@ -434,7 +432,7 @@ static enum IMGSENSOR_RETURN gpio_set(
 
 	if (is_project(19165)) {
                 if (pin < IMGSENSOR_HW_PIN_PDN ||
-                        pin > IMGSENSOR_HW_PIN_AVDD_1 ||
+                        pin > IMGSENSOR_HW_PIN_AVDD1 ||
                         pin_state < IMGSENSOR_HW_PIN_STATE_LEVEL_0 ||
                         pin_state > IMGSENSOR_HW_PIN_STATE_LEVEL_HIGH ||
                         sensor_idx < 0)
