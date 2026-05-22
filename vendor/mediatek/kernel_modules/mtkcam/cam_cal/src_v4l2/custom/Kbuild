@@ -41,11 +41,12 @@ KERNEL_CAM_CAL_SRC := $(notdir $(wildcard $(CAM_CAL_CUSTOM_SRC_LAYOUT_PATH)/*.c)
 KERNEL_CAM_CAL_OBJ := $(addprefix layout/,$(patsubst %.c, %.o, $(KERNEL_CAM_CAL_SRC)))
 KERNEL_CAM_CAL := $(basename $(KERNEL_CAM_CAL_SRC))
 
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-OPLUS_KERNEL_CAM_CAL_SRC += $(notdir $(wildcard $(OPLUS_CAM_CAL_CUSTOM_SRC_LAYOUT_PATH)/*.c))
-KERNEL_CAM_CAL_OBJ += $(addprefix oplus/layout/,$(patsubst %.c, %.o, $(OPLUS_KERNEL_CAM_CAL_SRC)))
-KERNEL_CAM_CAL += $(basename $(OPLUS_KERNEL_CAM_CAL_SRC))
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
+# camellia LOS 23: disable OPLUS-specific cam_cal layout entries (KONKAMAIN etc are OnePlus sensors)
+# #ifdef OPLUS_FEATURE_CAMERA_COMMON  <-- this was a comment, not an actual Makefile conditional
+# OPLUS_KERNEL_CAM_CAL_SRC += ...
+# KERNEL_CAM_CAL_OBJ += ...
+# KERNEL_CAM_CAL += ...
+# #endif
 
 CAM_CAL_CONFIG_LIST := $(subst $(space),$(comma),$(foreach e,$(subst ",,$(KERNEL_CAM_CAL)),E($(e))))
 subdir-ccflags-y += -D'CAM_CAL_CONFIG_LIST=$(CAM_CAL_CONFIG_LIST)'
