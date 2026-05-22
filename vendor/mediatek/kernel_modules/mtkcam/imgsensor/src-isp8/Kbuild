@@ -132,12 +132,10 @@ $(info common_drv : $(common_drv))
 $(foreach drv,$(common_drv),$(eval $(call add_subdrv,common/$(drv))))
 endif
 
-#ifdef OPLUS_FEATURE_CAMERA_COMMON
-ifneq ($(oplus_drv),)
-$(info oplus_drv : $(oplus_drv))
-$(foreach drv,$(oplus_drv),$(eval $(call add_subdrv,oplus/common/$(drv))))
-endif
-#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
+# camellia: disable OPLUS sensor add_subdrv loop (KONKAUTELE etc - OnePlus only)
+# ifneq ($(oplus_drv),)
+# $(foreach drv,$(oplus_drv),$(eval $(call add_subdrv,oplus/common/$(drv))))
+# endif
 
 ifneq ($(project_drv),)
 $(info project_drv : $(project_drv))
