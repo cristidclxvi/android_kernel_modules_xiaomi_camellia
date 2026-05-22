@@ -269,7 +269,7 @@ mgk_64_device_modules = [
     "drivers/input/touchscreen/gt9xx/gt9xx_touch.ko",
     "drivers/input/touchscreen/ILITEK/ilitek_i2c.ko",
     "drivers/input/touchscreen/NT36672C_I2C/nt36672c_i2c.ko",
-    #"drivers/input/touchscreen/NT36672C_SPI/nt36672c_spi.ko",
+    "drivers/input/touchscreen/NT36672C_SPI/nt36672c_spi.ko",
     "drivers/input/touchscreen/k6985v1_64_alpha/tp_y761.ko",
     "drivers/input/touchscreen/synaptics_dsx_96789/synaptics_touch_96789.ko",
     "drivers/input/touchscreen/synaptics_dsx_96851/synaptics_touch_96851.ko",
