@@ -2,6 +2,7 @@
 
 menu "Storage"
 source "$(KCONFIG_EXT_PREFIX)drivers/misc/mediatek/pidmap/Kconfig"
+source "$(KCONFIG_EXT_PREFIX)drivers/misc/mediatek/vibrator/Kconfig"
 endmenu # Storage
 
 menu "Power, PMIC, Battery & Low Power"
