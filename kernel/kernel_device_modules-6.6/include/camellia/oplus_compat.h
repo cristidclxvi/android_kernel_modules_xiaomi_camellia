@@ -95,4 +95,10 @@ static long silence_flag_dummy_v;
 #define android_rvh_schedule_handler(...)           do { } while (0)
 #define sa_skip_rt_sync(...)                        do { } while (0)
 
+
+/* Remaining OPLUS hooks from final modpost batch. */
+#define oplus_update_tg_map(css)            do { (void)(css); } while (0)
+#define soc_codec_conf_sia91xx(pdev, card)  do { (void)(pdev); (void)(card); } while (0)
+static inline int get_PCB_Version(void) { return 0; }
+
 #endif /* __CAMELLIA_OPLUS_COMPAT_H__ */
