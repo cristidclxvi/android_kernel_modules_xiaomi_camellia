@@ -989,7 +989,7 @@ int32_t nvt_update_firmware(char *firmware_name)
 		goto download_fail;
 	}
 
-	NVT_LOG("Update firmware success! <%ld us>\n",
+	NVT_LOG("Update firmware success! <%lld us>\n",
 		(end.tv_sec - start.tv_sec) * 1000000L + ((end.tv_nsec - start.tv_nsec) / 1000));
 
 	/* Get FW Info */
