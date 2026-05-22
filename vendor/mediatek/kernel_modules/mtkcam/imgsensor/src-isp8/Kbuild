@@ -64,12 +64,12 @@ imgsensor_isp8-objs += \
 	adaptor-util.o \
 
 #ifdef OPLUS_FEATURE_CAMERA_COMMON
-imgsensor_isp8-objs += oplus/oplus-adaptor-subdrv-ctrl.o
-imgsensor_isp8-objs += oplus/dfx/oplus_cam_olc_exception.o
+# camellia: imgsensor_isp8-objs += oplus/oplus-adaptor-subdrv-ctrl.o
+# camellia: imgsensor_isp8-objs += oplus/dfx/oplus_cam_olc_exception.o
 #endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 #ifdef CONFIG_OPLUS_CAMERA_NOTIFY
-imgsensor_isp8-objs += oplus/oplus_cam_notify.o
+# camellia: imgsensor_isp8-objs += oplus/oplus_cam_notify.o
 #endif /* CONFIG_OPLUS_CAMERA_NOTIFY */
 
 define FILTER_DRV
