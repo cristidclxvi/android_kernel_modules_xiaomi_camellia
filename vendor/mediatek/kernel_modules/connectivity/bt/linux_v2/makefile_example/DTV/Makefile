@@ -1,3 +1,4 @@
+ccflags-y += -Wno-error=macro-redefined -Wno-error=unused-label -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=undef -Wno-error=vla -Wno-error=int-conversion -Wno-error=pointer-integer-compare
 #export KERNEL_DIR := /lib/modules/$(shell uname -r)/build
 ifeq ($(KERNEL_MIXED_BUILD_SUPPORT),true)
     include $(KERNEL_MIXED_BUILD_PATH)/Kbuild.common
