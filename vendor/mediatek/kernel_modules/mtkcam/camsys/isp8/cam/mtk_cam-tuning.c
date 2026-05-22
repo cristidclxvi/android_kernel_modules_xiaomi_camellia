@@ -6,7 +6,7 @@
 #include "mtk_cam.h"
 
 #define OTP_SIZE 2340
-extern void custom_eeprom_read(bool *is_valid, void *d_data);
+static inline void custom_eeprom_read(bool *is_valid, void *d_data) { (void)is_valid; (void)d_data; }
 static bool do_set_otp_once;
 static unsigned char ois_otp[OTP_SIZE];
 
