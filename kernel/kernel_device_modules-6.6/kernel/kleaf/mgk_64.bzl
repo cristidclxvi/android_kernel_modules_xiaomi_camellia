@@ -118,6 +118,8 @@ mgk_64_kleaf_user_modules = [
 
 mgk_64_module_outs = [
     "drivers/leds/leds-ti-lmu-common.ko",
+    "drivers/leds/leds-lm3697.ko",
+    "drivers/media/i2c/ov8856.ko",
 ]
 
 mgk_64_common_modules = mgk_module_outs + mgk_64_module_outs
