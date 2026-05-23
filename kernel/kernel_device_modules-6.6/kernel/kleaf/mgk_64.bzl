@@ -117,6 +117,7 @@ mgk_64_kleaf_user_modules = [
 
 
 mgk_64_module_outs = [
+    "drivers/leds/leds-ti-lmu-common.ko",
 ]
 
 mgk_64_common_modules = mgk_module_outs + mgk_64_module_outs
@@ -287,8 +288,6 @@ mgk_64_device_modules = [
     "drivers/leds/leds-mt6360.ko",
     "drivers/leds/leds-mtk-disp.ko",
     "drivers/leds/leds-mtk.ko",
-    "drivers/leds/leds-lm3697.ko",
-    "drivers/media/i2c/ov8856.ko",
     "drivers/leds/leds-mtk-pwm.ko",
     "drivers/leds/regulator-vibrator.ko",
     "drivers/leds/flash/leds-mt6370-flash.ko",
