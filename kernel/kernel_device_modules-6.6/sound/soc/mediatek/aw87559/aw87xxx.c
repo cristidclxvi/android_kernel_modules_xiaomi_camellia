@@ -644,7 +644,7 @@ static int aw87xxx_scene_update(struct aw87xxx *aw87xxx, uint8_t scence_mode)
 	}
 
 	return request_firmware_nowait(THIS_MODULE,
-				       FW_ACTION_HOTPLUG,
+				       FW_ACTION_UEVENT,
 				       aw87xxx->cfg_name[scence_mode],
 				       aw87xxx->dev,
 				       GFP_KERNEL,
@@ -720,7 +720,7 @@ static int aw87xxx_vbat_monitor_update(struct aw87xxx *aw87xxx)
 	aw_dev_info(aw87xxx->dev, "%s enter\n", __func__);
 
 	return request_firmware_nowait(THIS_MODULE,
-				FW_ACTION_HOTPLUG,
+				FW_ACTION_UEVENT,
 				aw87xxx->vmax_cfg_name,
 				aw87xxx->dev,
 				GFP_KERNEL,
