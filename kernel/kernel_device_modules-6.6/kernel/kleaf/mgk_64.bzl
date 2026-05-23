@@ -4089,8 +4089,8 @@ def get_overlay_modules_list():
         mgk_64_device_modules.remove("drivers/power/supply/rt9490-charger.ko")
         mgk_64_device_modules.remove("drivers/power/supply/rt9758-charger.ko")
         mgk_64_device_modules.remove("drivers/power/supply/mt6370-charger.ko")
-        mgk_64_device_modules.append("sound/soc/mediatek/aw87559/snd-soc-aw87559.ko",
-    "sound/soc/mediatek/aw87519/aw87519_left_audio.ko")
+        mgk_64_device_modules.append("sound/soc/mediatek/aw87559/snd-soc-aw87559.ko")
+        mgk_64_device_modules.append("sound/soc/mediatek/aw87519/aw87519_left_audio.ko")
         mgk_64_device_modules.append("sound/soc/mediatek/aw87519/aw87519_right_audio.ko")
         mgk_64_device_modules.remove("sound/soc/codecs/snd-soc-rt5509.ko")
 
