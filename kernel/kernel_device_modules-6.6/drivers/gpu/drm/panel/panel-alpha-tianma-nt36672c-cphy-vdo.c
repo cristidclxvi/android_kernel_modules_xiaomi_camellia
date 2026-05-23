@@ -258,7 +258,6 @@ static const struct drm_display_mode default_mode = {
 	.vsync_start = 2400 + 1291,
 	.vsync_end = 2400 + 1291 + 10,
 	.vtotal = 2400 + 1291 + 10 + 10,
-	.vrefresh = 60,
 };
 
 static const struct drm_display_mode performance_mode = {
@@ -271,7 +270,6 @@ static const struct drm_display_mode performance_mode = {
 	.vsync_start = 2400 + 54,
 	.vsync_end = 2400 + 54 + 10,
 	.vtotal = 2400 + 54 + 10 + 10,
-	.vrefresh = 90,
 };
 #else
 #define HFP (256)
@@ -293,7 +291,6 @@ static const struct drm_display_mode default_mode = {
 	.vsync_start = VAC + VFP_60HZ,
 	.vsync_end = VAC + VFP_60HZ + VSA,
 	.vtotal = VAC + VFP_60HZ + VSA + VBP,
-	.vrefresh = 60,
 };
 
 static const struct drm_display_mode performance_mode = {
@@ -306,7 +303,6 @@ static const struct drm_display_mode performance_mode = {
 	.vsync_start = VAC + VFP_90HZ,
 	.vsync_end = VAC + VFP_90HZ + VSA,
 	.vtotal = VAC + VFP_90HZ + VSA + VBP,
-	.vrefresh = 90,
 };
 #endif
 
@@ -726,9 +722,7 @@ static int tianma_probe(struct mipi_dsi_device *dsi)
 	drm_panel_init(&ctx->panel, dev, &tianma_drm_funcs,
 		       DRM_MODE_CONNECTOR_DSI);
 
-	ret = drm_panel_add(&ctx->panel);
-	if (ret < 0)
-		return ret;
+	drm_panel_add(&ctx->panel);
 
 	ret = mipi_dsi_attach(dsi);
 	if (ret < 0)
