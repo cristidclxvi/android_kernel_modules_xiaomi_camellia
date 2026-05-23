@@ -471,3 +471,4 @@ config ADSP_SLB_LEGACY
 	  This option is specifically for older Mediatek chips that rely on SLB for system-level bus
 	  management. Enabling this will ensure compatibility and proper functioning of the bus system on
 	  these legacy chips. Note that this is not required for newer chips that have SLC support.
+source "$(KCONFIG_EXT_PREFIX)sound/soc/mediatek/aw87559/Kconfig"
