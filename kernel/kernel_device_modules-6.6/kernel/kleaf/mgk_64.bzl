@@ -787,6 +787,7 @@ mgk_64_device_modules = [
     "sound/soc/mediatek/ultrasound/ultra_common/mtk-scp-ultra.ko",
     "sound/soc/mediatek/ultrasound/ultra_scp/snd-soc-mtk-scp-ultra.ko",
     "sound/soc/mediatek/vow/mtk-scp-vow.ko",
+    "sound/soc/mediatek/aw87559/snd-soc-aw87559.ko",
     #"drivers/soc/oplus/boot/oplus_projectinfo/oplus_bsp_boot_projectinfo.ko",
     #"drivers/soc/oplus/boot/cmdline_parser/oplus_bootargs.ko",
     #"drivers/soc/oplus/boot/cmdline_parser/oplusboot.ko",
