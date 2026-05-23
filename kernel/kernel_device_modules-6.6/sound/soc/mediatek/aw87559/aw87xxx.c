@@ -1435,7 +1435,6 @@ static int aw87xxx_i2c_probe(struct i2c_client *client,
 
  exit_i2c_check_id_failed:
 	if (gpio_is_valid(aw87xxx->reset_gpio))
-		devm_gpio_free(&client->dev, aw87xxx->reset_gpio);
  exit_gpio_request_failed:
 	devm_kfree(&client->dev, aw87xxx);
 	aw87xxx = NULL;
@@ -1449,7 +1448,6 @@ static int aw87xxx_i2c_remove(struct i2c_client *client)
 	struct aw87xxx *aw87xxx = i2c_get_clientdata(client);
 
 	if (gpio_is_valid(aw87xxx->reset_gpio))
-		devm_gpio_free(&client->dev, aw87xxx->reset_gpio);
 
 	list_del(&aw87xxx->list);
 	devm_kfree(&client->dev, aw87xxx);
