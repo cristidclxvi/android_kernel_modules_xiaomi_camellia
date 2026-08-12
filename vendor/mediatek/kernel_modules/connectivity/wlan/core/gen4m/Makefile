@@ -491,16 +491,23 @@ endif
 
 ifeq ($(MODULE_NAME),)
 MODULE_NAME := wlan_$(shell echo $(strip $(WLAN_CHIP_ID)) | tr A-Z a-z)_$(CONFIG_MTK_COMBO_WIFI_HIF)
+# camellia: self-configure for this device. The computed name is wlan_6833_axi, but
+# init.wlan_drv.rc insmods /vendor/lib/modules/wlan_drv_${ro.vendor.wlan.gen}.ko
+# and this device ships that as wlan_drv_gen4m.ko.
+MODULE_NAME := wlan_drv_gen4m
+KBUILD_EXTRA_SYMBOLS += $(KBUILD_EXTMOD)/../../../common/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(KBUILD_EXTMOD)/../../adaptor/Module.symvers
+
 endif
 
 ccflags-y += -DDBG=0
-ccflags-y += -I$(src)/os -I$(src)/os/$(os)/include
-ccflags-y += -I$(src)/include -I$(src)/include/nic -I$(src)/include/mgmt -I$(src)/include/chips
+ccflags-y += -I$(srctree)/$(src)/os -I$(srctree)/$(src)/os/$(os)/include
+ccflags-y += -I$(srctree)/$(src)/include -I$(srctree)/$(src)/include/nic -I$(srctree)/$(src)/include/mgmt -I$(srctree)/$(src)/include/chips
 ifeq ($(CONFIG_MTK_WIFI_NAN), y)
-ccflags-y += -I$(src)/include/nan -I$(src)/include/nan/wpa_supp
+ccflags-y += -I$(srctree)/$(src)/include/nan -I$(srctree)/$(src)/include/nan/wpa_supp
 endif
 ifeq ($(CFG_SUPPORT_WIFI_SYSDVT), 1)
-ccflags-y += -I$(src)/include/dvt
+ccflags-y += -I$(srctree)/$(src)/include/dvt
 endif
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
@@ -522,22 +529,22 @@ ccflags-y += -DCFG_MTK_MDDP_SUPPORT=0
 endif
 
 ifeq ($(CONFIG_MTK_COMBO_WIFI_HIF), sdio)
-ccflags-y += -I$(src)/os/$(os)/hif/sdio/include
+ccflags-y += -I$(srctree)/$(src)/os/$(os)/hif/sdio/include
 else ifeq ($(CONFIG_MTK_COMBO_WIFI_HIF), pcie)
-ccflags-y += -I$(src)/os/$(os)/hif/common/include
-ccflags-y += -I$(src)/os/$(os)/hif/pcie/include
+ccflags-y += -I$(srctree)/$(src)/os/$(os)/hif/common/include
+ccflags-y += -I$(srctree)/$(src)/os/$(os)/hif/pcie/include
 ifneq ($(findstring 3_0,$(MTK_COMBO_CHIP)),)
-ccflags-y += -I$(src)/include/chips/coda/soc3_0
+ccflags-y += -I$(srctree)/$(src)/include/chips/coda/soc3_0
 endif
 else ifeq ($(CONFIG_MTK_COMBO_WIFI_HIF), axi)
-ccflags-y += -I$(src)/os/$(os)/hif/common/include
-ccflags-y += -I$(src)/os/$(os)/hif/axi/include
+ccflags-y += -I$(srctree)/$(src)/os/$(os)/hif/common/include
+ccflags-y += -I$(srctree)/$(src)/os/$(os)/hif/axi/include
 else ifeq ($(CONFIG_MTK_COMBO_WIFI_HIF), usb)
-ccflags-y += -I$(src)/os/$(os)/hif/usb/include
+ccflags-y += -I$(srctree)/$(src)/os/$(os)/hif/usb/include
 else ifeq ($(CONFIG_MTK_COMBO_WIFI_HIF), ut)
-ccflags-y += -I$(src)/test -I$(src)/test/lib/include -I$(src)/test/testcases -I$(src)/test/lib/hif
+ccflags-y += -I$(srctree)/$(src)/test -I$(srctree)/$(src)/test/lib/include -I$(srctree)/$(src)/test/testcases -I$(srctree)/$(src)/test/lib/hif
 else ifeq ($(CONFIG_MTK_COMBO_WIFI_HIF), none)
-ccflags-y += -I$(src)/os/$(os)/hif/none/include
+ccflags-y += -I$(srctree)/$(src)/os/$(os)/hif/none/include
 endif
 
 ifneq ($(PLATFORM_FLAGS), )
@@ -930,10 +937,10 @@ endif
 ifeq ($(MTK_WLAN_SERVICE), yes)
 ccflags-y += -DCONFIG_WLAN_SERVICE=1
 ccflags-y += -DCONFIG_TEST_ENGINE_OFFLOAD=1
-ccflags-y += -I$(src)/$(SERVICE_DIR)include
-ccflags-y += -I$(src)/$(SERVICE_DIR)service/include
-ccflags-y += -I$(src)/$(SERVICE_DIR)glue/osal/include
-ccflags-y += -I$(src)/$(SERVICE_DIR)glue/hal/include
+ccflags-y += -I$(srctree)/$(src)/$(SERVICE_DIR)include
+ccflags-y += -I$(srctree)/$(src)/$(SERVICE_DIR)service/include
+ccflags-y += -I$(srctree)/$(src)/$(SERVICE_DIR)glue/osal/include
+ccflags-y += -I$(srctree)/$(src)/$(SERVICE_DIR)glue/hal/include
 $(info $$CCFLAG is [{$(ccflags-y)}])
 SERVICE_OBJS := $(SERVICE_DIR)agent/agent.o \
                 $(SERVICE_DIR)service/service_test.o \

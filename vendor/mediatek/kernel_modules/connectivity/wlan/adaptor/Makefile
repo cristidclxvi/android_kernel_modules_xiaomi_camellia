@@ -28,7 +28,7 @@ endif
 ifneq ($(CONFIG_MTK_CONNSYS_DEDICATED_LOG_PATH),)
 ccflags-y += -DCONFIG_MTK_CONNSYS_DEDICATED_LOG_PATH
 ccflags-y += -I$(TOP)/vendor/mediatek/kernel_modules/connectivity/common/debug_utility
-ccflags-y += -I$(src)/include
+ccflags-y += -I$(srctree)/$(src)/include
 endif
 
 ifeq ($(CONFIG_MTK_CONN_LTE_IDC_SUPPORT),y)
@@ -48,6 +48,11 @@ endif
 ccflags-y += -D MTK_WCN_WMT_STP_EXP_SYMBOL_ABSTRACT
 
 ccflags-y += -D CREATE_NODE_DYNAMIC=1
+
+# camellia: self-configure for this device. Upstream leaves MODULE_NAME to the caller;
+# unset it produces a nameless ".ko".
+MODULE_NAME ?= wmt_chrdev_wifi
+KBUILD_EXTRA_SYMBOLS += $(KBUILD_EXTMOD)/../../common/Module.symvers
 
 ifeq ($(CONFIG_WLAN_DRV_BUILD_IN),y)
 $(warning $(MODULE_NAME) build-in boot.img)

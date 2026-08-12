@@ -48,6 +48,14 @@ $(info [fm_drv:Kbuild] CFG_BUILD_CONNAC2 = $(CFG_BUILD_CONNAC2))
 $(info [fm_drv:Kbuild] CFG_FM_CHIP_ID = $(CFG_FM_CHIP_ID))
 $(info [fm_drv:Kbuild] CFG_FM_CHIP = $(CFG_FM_CHIP))
 
+# camellia: self-configure for this device. CFG_FM_PLAT is only set when the top-level
+# fmradio/Makefile wrapper recurses; building this directory directly
+# leaves it empty and yields "fmradio_drv_.ko".
+CFG_FM_PLAT ?= mt6631_6635
+# NOTE: Build/mt6631_6635 is a symlink to "..", i.e. to fmradio itself, so
+# ".." resolves physically from fmradio and not from the symlinked path.
+# connectivity/common is therefore one level up, not three.
+KBUILD_EXTRA_SYMBOLS += $(KBUILD_EXTMOD)/../common/Module.symvers
 MODULE_NAME := fmradio_drv_$(CFG_FM_PLAT)
 ifeq ($(CONFIG_WLAN_DRV_BUILD_IN),y)
 $(info [fm_drv:Kbuild] $(MODULE_NAME) build-in boot.img)

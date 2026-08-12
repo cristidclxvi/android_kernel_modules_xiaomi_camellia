@@ -65,6 +65,8 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/clkbuf_v1/$(M
 ccflags-y += -I$(srctree)/drivers/devfreq
 ###############################################################################
 
+# camellia: self-configure for this device. gps_drv imports wmt_drv symbols.
+KBUILD_EXTRA_SYMBOLS += $(KBUILD_EXTMOD)/../common/Module.symvers
 MODULE_NAME := gps_drv
 obj-m += $(MODULE_NAME).o
 

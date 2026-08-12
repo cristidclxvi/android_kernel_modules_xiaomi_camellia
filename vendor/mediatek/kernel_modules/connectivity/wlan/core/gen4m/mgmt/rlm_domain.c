@@ -70,9 +70,20 @@
  */
 #include "precomp.h"
 #include "rlm_txpwr_init.h"
-//#ifdef OPLUS_FEATURE_WIFI_CUSTOMER_NVRAM
-#include <soc/oplus/system/oplus_project.h>
-//#endif /* OPLUS_FEATURE_WIFI_CUSTOMER_NVRAM */
+/*
+ * camellia is not a OnePlus device, so soc/oplus/system/oplus_project.h does
+ * not exist here. Every use of get_project() below indexes a table keyed by
+ * OnePlus internal project IDs (20761, 136826, ...) purely to *override* the
+ * MediaTek default power-limit table that was already assigned immediately
+ * above it. No camellia ID can ever appear in those tables, so returning an ID
+ * that never matches leaves the MTK defaults in force, which is exactly the
+ * behaviour this device needs. Stubbed rather than deleted so the file stays
+ * close to its upstream form for future rebases.
+ */
+static inline unsigned int get_project(void)
+{
+	return 0;
+}
 
 //#ifdef OPLUS_BUG_COMPATIBILITY
 //Add new region cfg implementation

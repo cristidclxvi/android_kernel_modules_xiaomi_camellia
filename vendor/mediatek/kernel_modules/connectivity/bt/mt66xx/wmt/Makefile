@@ -58,10 +58,14 @@ ccflags-y += -I$(WMT_SRC_FOLDER)/common_main/linux/include
 ifneq ($(CONFIG_MTK_CONNSYS_DEDICATED_LOG_PATH),)
 ccflags-y += -I$(WMT_SRC_FOLDER)/debug_utility
 endif
-ccflags-y += -I$(src)/../include/btif
+ccflags-y += -I$(srctree)/$(src)/../include/btif
 
 ###############################################################################
 
+# camellia: self-configure for this device. CONSYS_6833 is CONNAC1 and never sets
+# _MTK_BT_CHIP, so BT_PLATFORM would be empty.
+BT_PLATFORM ?= connac1x
+KBUILD_EXTRA_SYMBOLS += $(KBUILD_EXTMOD)/../../../common/Module.symvers
 MODULE_NAME := bt_drv_$(BT_PLATFORM)
 obj-m += $(MODULE_NAME).o
 
