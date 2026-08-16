@@ -106,14 +106,26 @@ extern struct MIB_INFO_STAT g_arMibInfo[ENUM_BAND_NUM];
 #define DBG_CLASS_TEMP          BIT(7)
 #define DBG_CLASS_MASK          BITS(0, 7)
 
+/*
+ * INFO is not in the default set. It is roughly a third of everything the
+ * kernel log ring holds on this device - per-packet and per-poll chatter from
+ * halSetDriverOwn, asicFillCmdTxdInfo, kalPerMonUpdate and friends - which
+ * wraps the buffer in minutes and destroys any chance of reading back why the
+ * device rebooted. The remaining mask is 0x0F, which is what MediaTek's own
+ * Makefile.ce sets as CFG_DEFAULT_DBG_LEVEL.
+ *
+ * ERROR, WARN, STATE and EVENT all survive, so association and roaming
+ * transitions are still traced. Put INFO back at runtime when debugging the
+ * driver.
+ */
 #define DBG_LOG_LEVEL_DEFAULT \
 	(DBG_CLASS_ERROR | \
 	DBG_CLASS_WARN | \
 	DBG_CLASS_STATE | \
-	DBG_CLASS_EVENT | \
-	DBG_CLASS_INFO)
+	DBG_CLASS_EVENT)
 #define DBG_LOG_LEVEL_MORE \
 	(DBG_LOG_LEVEL_DEFAULT | \
+	DBG_CLASS_INFO | \
 	DBG_CLASS_TRACE)
 #define DBG_LOG_LEVEL_EXTREME \
 	(DBG_LOG_LEVEL_MORE | \

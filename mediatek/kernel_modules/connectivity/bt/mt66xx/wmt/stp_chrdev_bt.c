@@ -378,7 +378,7 @@ static VOID BT_event_cb(VOID)
 				cpu_latency_qos_update_request(&qos_req, 1000);
 				#endif
 				qos_ctrl.is_hold = TRUE;
-				BT_LOG_PRT_INFO("[qos] is_hold[%d]\n", qos_ctrl.is_hold);
+				BT_LOG_PRT_DBG("[qos] is_hold[%d]\n", qos_ctrl.is_hold);
 			}
 			queue_delayed_work(qos_ctrl.task, &qos_ctrl.work, (500 * HZ) >> 10);
 		}
@@ -590,8 +590,18 @@ ssize_t BT_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos
 	}
 
 	if (count > BT_BUFFER_SIZE) {
+		/*
+		 * Logged before the clamp: the original printed count after
+		 * assigning it, so it always claimed "from 2048 to 2048" and
+		 * never showed what was actually asked for.
+		 *
+		 * Demoted because it fires over once a second here and wraps
+		 * the log ring. That hides a symptom whose cause is not
+		 * understood - why the stack asks for more than BT_BUFFER_SIZE
+		 * at all - so re-enable this before investigating that.
+		 */
+		BT_LOG_PRT_DBG("Shorten read count from %zd to %d\n", count, BT_BUFFER_SIZE);
 		count = BT_BUFFER_SIZE;
-		BT_LOG_PRT_WARN("Shorten read count from %zd to %d\n", count, BT_BUFFER_SIZE);
 	}
 
 	do {
@@ -742,7 +752,7 @@ static void pm_qos_release(struct work_struct *pwork)
 	cpu_latency_qos_update_request(&qos_req, PM_QOS_DEFAULT_VALUE);
 #endif
 	qos_ctrl.is_hold = FALSE;
-	BT_LOG_PRT_INFO("[qos] is_hold[%d]\n", qos_ctrl.is_hold);
+	BT_LOG_PRT_DBG("[qos] is_hold[%d]\n", qos_ctrl.is_hold);
 }
 
 static int BT_open(struct inode *inode, struct file *file)
