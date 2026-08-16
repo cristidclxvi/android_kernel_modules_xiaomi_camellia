@@ -920,7 +920,13 @@ else ifeq ($(CONFIG_OPLUS_FEATURE_WIFI_OPLUSWFD), n)
 ccflags-y += -UOPLUS_FEATURE_WIFI_OPLUSWFD
 endif
 
+# The guard above and below is a comment, not a directive, so this object was
+# always added. Its whole .c body sits inside #ifdef OPLUS_FEATURE_WIFI_OPLUSWFD,
+# which is only defined by the branches above, so on camellia it compiles to
+# nothing but CFI stubs. Guarded with the same condition the ccflags use.
+ifneq ($(filter m y,$(CONFIG_OPLUS_FEATURE_WIFI_OPLUSWFD)),)
 OPLUS_WFD_OBJS += oplus_wfd/wlan_oplus_wfd.o
+endif
 #endif /* OPLUS_FEATURE_WIFI_OPLUSWFD */
 
 # ---------------------------------------------------
