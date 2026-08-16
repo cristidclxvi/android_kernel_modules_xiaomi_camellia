@@ -6,10 +6,14 @@ Bluetooth, GPS, FM) from source for the Xiaomi Redmi Note 10 5G / POCO M3 Pro
 
 It branches from `oneplus/mt6833_s_12.1_oneplus_n300` at
 `bf43f506736c522fccde2e67a86bcb3a18056df9`. That branch targets the same SoC
-and the same kernel sublevel (4.14.186) camellia runs, which is why it is the
-base rather than any of the newer OnePlus drops. Only
-`vendor/mediatek/kernel_modules/connectivity` is used; the rest of the tree is
-OnePlus platform code camellia does not have hardware for.
+and the 4.14.186 sublevel camellia started from, which is why it is the base
+rather than any of the newer OnePlus drops. The device has since moved to
+4.14.357-openela and these modules build against it unchanged.
+
+Only `mediatek/kernel_modules/connectivity` is used. The OnePlus platform tree
+that came with the fork was for hardware camellia does not have and has been
+removed; the trees sit at the repository root so the checkout path matches what
+`TARGET_KERNEL_EXT_MODULE_ROOT` expects.
 
 Everything camellia-specific is a single commit on top of that base, kept as
 one reviewable diff so it stays easy to rebase onto a newer upstream drop.
