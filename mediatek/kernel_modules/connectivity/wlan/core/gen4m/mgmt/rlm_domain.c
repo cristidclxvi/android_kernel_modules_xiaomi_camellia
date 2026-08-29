@@ -791,10 +791,10 @@ struct DOMAIN_INFO_ENTRY arSupportedRegDomains[] = {
 			{131, BAND_6G, CHNL_SPAN_20, 1, 59, FALSE}
 			,			/* 6G_CH_1_233 */
 #endif
-			{115, BAND_NULL, 0, 0, 0, FALSE}
-			,			/* CH_SET_UNII_LOW_NA */
-			{118, BAND_NULL, 0, 0, 0, FALSE}
-			,			/* CH_SET_UNII_MID_NA */
+			{115, BAND_5G, CHNL_SPAN_20, 36, 4, FALSE}
+			,			/* CH_SET_UNII_LOW_36_48 */
+			{118, BAND_5G, CHNL_SPAN_20, 52, 4, TRUE}
+			,			/* CH_SET_UNII_MID_52_64 */
 			{121, BAND_NULL, 0, 0, 0, FALSE}
 			,			/* CH_SET_UNII_WW_NA */
 			{125, BAND_NULL, 0, 0, 0, FALSE}
